@@ -509,7 +509,13 @@ function getActionIconHtml(actionType, locationDetails, notes) {
       cls = 'action-surf';
     } else if (loc.includes('fish') || loc.includes('rod')) {
       icon = '/icons/icons8-fishing-pole-100.png';
-      label = 'Fish';
+      if (loc.includes('super')) {
+        label = 'Super Rod';
+      } else if (loc.includes('good')) {
+        label = 'Good Rod';
+      } else {
+        label = 'Old Rod';
+      }
       cls = 'action-fish';
     } else {
       icon = '/icons/icons8-grass-100.png';

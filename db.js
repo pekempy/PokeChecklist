@@ -8,7 +8,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let dbPath = path.join(__dirname, 'pokemon_checklist.db');
-let db = new sqlite3.Database(dbPath);
+let db = new sqlite3.Database(dbPath, (err) => {
+  if (!err) {
+    db.run("PRAGMA foreign_keys = ON");
+  }
+});
 
 const pokemonMaster = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'pokemon_master_386.json'), 'utf8')
@@ -26,7 +30,11 @@ export function setDatabasePath(newPath) {
     db.close();
   }
   dbPath = newPath;
-  db = new sqlite3.Database(dbPath);
+  db = new sqlite3.Database(dbPath, (err) => {
+    if (!err) {
+      db.run("PRAGMA foreign_keys = ON");
+    }
+  });
 }
 
 export function getDbPath() {
@@ -69,6 +77,12 @@ export function serialize(callback) {
 }
 
 export async function initDb() {
+  // Run PRAGMA foreign_keys to be sure it is active for this session
+  await run("PRAGMA foreign_keys = ON");
+  
+  // Clean up any orphaned progress rows first
+  await run("DELETE FROM progress WHERE requirement_id NOT IN (SELECT id FROM requirements)");
+
   // Create tables
   await run(`
     CREATE TABLE IF NOT EXISTS games (
