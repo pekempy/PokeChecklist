@@ -340,7 +340,7 @@ export const gen1Wild = {
     132: { loc: "Cerulean Cave (B1F)", sec: 10 }
   },
   red: {
-    25: { loc: "Viridian Forest (Grass - Rare)", sec: 1 },
+    25: [{ loc: "Viridian Forest (Grass - Rare)", sec: 1 }, { loc: "Power Plant (Electric Room)", sec: 8 }],
     10: { loc: "Viridian Forest (Grass)", sec: 1 },
     11: { loc: "Viridian Forest (Grass)", sec: 1 },
     13: { loc: "Viridian Forest (Grass)", sec: 1 },
@@ -410,7 +410,7 @@ export const gen1Wild = {
     132: { loc: "Cerulean Cave (B1F)", sec: 10 }
   },
   blue: {
-    25: { loc: "Viridian Forest (Grass - Rare)", sec: 1 },
+    25: [{ loc: "Viridian Forest (Grass - Rare)", sec: 1 }, { loc: "Power Plant (Electric Room)", sec: 8 }],
     10: { loc: "Viridian Forest (Grass)", sec: 1 },
     11: { loc: "Viridian Forest (Grass)", sec: 1 },
     13: { loc: "Viridian Forest (Grass)", sec: 1 },
@@ -585,8 +585,9 @@ export const gen2Wild = {
     216: { loc: "Route 45 (Morning/Day)", sec: 9 },
     207: { loc: "Route 45 (All Day)", sec: 9 },
     111: { loc: "Victory Road", sec: 9 },
-    75: { loc: "Victory Road", sec: 9 },
+    75: { loc: "Victory Road (Cave)", sec: 9 },
 
+    25: { loc: "Route 2 (Grass)", sec: 10 },
     246: { loc: "Mt. Silver (Cave)", sec: 10 },
     200: { loc: "Mt. Silver (Night)", sec: 10 },
     143: { loc: "Vermilion City (Static)", sec: 10 },
@@ -651,6 +652,7 @@ export const gen2Wild = {
     111: { loc: "Victory Road", sec: 9 },
     75: { loc: "Victory Road", sec: 9 },
 
+    25: { loc: "Route 2 (Grass)", sec: 10 },
     246: { loc: "Mt. Silver (Cave)", sec: 10 },
     200: { loc: "Mt. Silver (Night)", sec: 10 },
     143: { loc: "Vermilion City (Static)", sec: 10 },
@@ -718,6 +720,7 @@ export const gen2Wild = {
     111: { loc: "Victory Road", sec: 9 },
     75: { loc: "Victory Road", sec: 9 },
 
+    25: { loc: "Route 2 (Grass)", sec: 10 },
     246: { loc: "Mt. Silver (Cave)", sec: 10 },
     200: { loc: "Mt. Silver (Night)", sec: 10 },
     143: { loc: "Vermilion City (Static)", sec: 10 },
@@ -1077,6 +1080,7 @@ export const gen3Wild = {
     32: { loc: "Route 22", sec: 1 },
     29: { loc: "Route 22", sec: 1 },
     23: { loc: "Route 4", sec: 2 },
+    25: [{ loc: "Viridian Forest", sec: 1 }, { loc: "Power Plant", sec: 8 }],
     10: { loc: "Viridian Forest", sec: 1 },
     11: { loc: "Viridian Forest", sec: 1 },
     13: { loc: "Viridian Forest", sec: 1 },
@@ -1152,6 +1156,7 @@ export const gen3Wild = {
     56: { loc: "Route 22", sec: 1 },
     32: { loc: "Route 22", sec: 1 },
     29: { loc: "Route 22", sec: 1 },
+    25: [{ loc: "Viridian Forest", sec: 1 }, { loc: "Power Plant", sec: 8 }],
     27: { loc: "Route 4", sec: 2 },
     10: { loc: "Viridian Forest", sec: 1 },
     11: { loc: "Viridian Forest", sec: 1 },
@@ -1226,67 +1231,122 @@ function getGeneration(pokemonId) {
   return 3;
 }
 
-export function resolveRequirement(gameId, pokemonId, pokemonMap) {
+/**
+ * Returns ALL valid acquisition methods for a Pokémon in a given game.
+ * Each entry: { action_type, location_details, notes, section_id }
+ *
+ * Priority for "primary" display: Gift > NPC Trade > Wild CATCH > Evolve > Link Trade
+ * But ALL applicable methods are returned so the UI can show every option.
+ */
+export function resolveRequirements(gameId, pokemonId, pokemonMap, visited = new Set()) {
+  if (visited.has(pokemonId)) return [];
+  visited.add(pokemonId);
+
   const pokemon = pokemonMap[pokemonId];
   if (!pokemon) throw new Error(`Unknown pokemon ID ${pokemonId}`);
 
-  const gameGen = ['red', 'blue', 'yellow'].includes(gameId) ? 1 : (['gold', 'silver', 'crystal'].includes(gameId) ? 2 : 3);
+  const gameGen = ['red', 'blue', 'yellow'].includes(gameId) ? 1
+    : (['gold', 'silver', 'crystal'].includes(gameId) ? 2 : 3);
 
-  // 1. Check direct Gift/Static
-  const giftMap = gameGen === 1 ? gen1Gifts[gameId] : (gameGen === 2 ? gen2Gifts[gameId] : gen3Gifts[gameId]);
+  const results = [];
+
+  // Helper to push if not duplicate location
+  const seen = new Set();
+  const push = (entry) => {
+    const key = `${entry.action_type}|${entry.location_details}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      results.push(entry);
+    }
+  };
+
+  // 1. Gift / Static encounters
+  const giftMap = gameGen === 1 ? gen1Gifts[gameId]
+    : (gameGen === 2 ? gen2Gifts[gameId] : gen3Gifts[gameId]);
   if (giftMap && giftMap[pokemonId]) {
-    const gift = giftMap[pokemonId];
-    return {
-      action_type: 'GIFT',
-      location_details: gift.loc,
-      notes: `Gift/Static encounter for ${pokemon.name}.`,
-      section_id: gift.sec
-    };
+    const g = giftMap[pokemonId];
+    push({ action_type: 'GIFT', location_details: g.loc, notes: g.notes || `Gift/Static encounter for ${pokemon.name}.`, section_id: g.sec });
   }
 
-  // 2. Check direct NPC Trade
-  const tradeMap = gameGen === 1 ? gen1Trades[gameId] : (gameGen === 2 ? gen2Trades[gameId] : gen3Trades[gameId]);
+  // 2. In-game NPC Trades
+  const tradeMap = gameGen === 1 ? gen1Trades[gameId]
+    : (gameGen === 2 ? gen2Trades[gameId] : gen3Trades[gameId]);
   if (tradeMap && tradeMap[pokemonId]) {
-    const trade = tradeMap[pokemonId];
-    return {
-      action_type: 'TRADE',
-      location_details: trade.loc,
-      notes: trade.notes,
-      section_id: trade.sec || 10
-    };
+    const t = tradeMap[pokemonId];
+    push({ action_type: 'TRADE', location_details: t.loc, notes: t.notes, section_id: t.sec || 3 });
   }
 
-  // 3. Check if it evolves from something
+  // 3. Wild encounters (may be multiple per game in the multi-wild map)
+  const wildMap = gameGen === 1 ? gen1Wild[gameId]
+    : (gameGen === 2 ? gen2Wild[gameId] : gen3Wild[gameId]);
+  if (wildMap) {
+    const entries = wildMap[pokemonId];
+    if (entries) {
+      // Support both single-object { loc, sec } and array [{ loc, sec }, ...]
+      const list = Array.isArray(entries) ? entries : [entries];
+      for (const w of list) {
+        push({ action_type: 'CATCH', location_details: w.loc, notes: `Wild encounter.`, section_id: w.sec });
+      }
+    }
+  }
+
+  // 4. Evolution method
   const evo = evolutions[pokemonId];
   if (evo) {
-    // Resolve the pre-evolution recursively
-    const preReq = resolveRequirement(gameId, evo.from, pokemonMap);
-    const preName = pokemonMap[evo.from].name;
-    return {
-      action_type: 'EVOLVE',
-      location_details: `Evolve ${preName}`,
-      notes: `Evolves from ${preName} (${evo.method}).`,
-      section_id: preReq.section_id
-    };
+    const fromGen = getGeneration(evo.from);
+    if (fromGen <= gameGen) {
+      const preReqs = resolveRequirements(gameId, evo.from, pokemonMap, new Set(visited));
+      // Use earliest section of pre-evolution as the section for the evo entry
+      const preSecId = preReqs.length > 0 ? Math.min(...preReqs.map(r => r.section_id)) : 10;
+      const preName = pokemonMap[evo.from].name;
+      push({
+        action_type: 'EVOLVE',
+        location_details: `Evolve ${preName}`,
+        notes: `Evolves from ${preName} (${evo.method}).`,
+        section_id: preSecId
+      });
+    }
   }
 
-  // 4. Check direct Wild Catch
-  const wildMap = gameGen === 1 ? gen1Wild[gameId] : (gameGen === 2 ? gen2Wild[gameId] : gen3Wild[gameId]);
-  if (wildMap && wildMap[pokemonId]) {
-    const wild = wildMap[pokemonId];
-    return {
-      action_type: 'CATCH',
-      location_details: wild.loc,
-      notes: `Wild catch for ${pokemon.name}.`,
-      section_id: wild.sec
-    };
+  // 4b. Breeding method (for baby Pokémon in Gen 2 and Gen 3)
+  if (gameGen >= 2) {
+    const babyEvoTargetId = Object.keys(evolutions).find(key => evolutions[key].from === pokemonId);
+    if (babyEvoTargetId) {
+      const parentId = Number(babyEvoTargetId);
+      if (getGeneration(parentId) <= gameGen) {
+        const parentReqs = resolveRequirements(gameId, parentId, pokemonMap, new Set(visited));
+        const parentHasNative = parentReqs.some(r => r.action_type !== 'TRADE' || r.location_details !== 'Link Trade');
+        if (parentHasNative) {
+          const parentSecId = parentReqs.length > 0 ? Math.min(...parentReqs.map(r => r.section_id)) : 10;
+          const daycareSec = gameId.includes('firered') || gameId.includes('leafgreen') ? 10 : 3;
+          const resolvedSec = Math.max(parentSecId, daycareSec);
+          const parentName = pokemonMap[parentId].name;
+          push({
+            action_type: 'BREED',
+            location_details: `Breed ${parentName}`,
+            notes: `Breed ${parentName} at the Day Care.`,
+            section_id: resolvedSec
+          });
+        }
+      }
+    }
   }
 
-  // 5. Fallback: Version Exclusive or Trade from another game
-  return {
-    action_type: 'TRADE',
-    location_details: "Link Trade",
-    notes: `Trade from another game version (e.g. Red/Blue/Yellow/Gold/Silver/Crystal/Ruby/Sapphire/Emerald/FireRed/LeafGreen).`,
-    section_id: 10
-  };
+  // 5. Fallback: Link Trade (version exclusive)
+  if (results.length === 0) {
+    results.push({
+      action_type: 'TRADE',
+      location_details: 'Link Trade',
+      notes: `Not natively available in ${gameId} — obtain by trading from another version.`,
+      section_id: 10
+    });
+  }
+
+  return results;
+}
+
+// Legacy single-result shim (used nowhere after rewrite but kept for safety)
+export function resolveRequirement(gameId, pokemonId, pokemonMap) {
+  const results = resolveRequirements(gameId, pokemonId, pokemonMap);
+  return results[0];
 }

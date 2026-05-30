@@ -2,7 +2,7 @@ import sqlite3 from 'sqlite3';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
-import { resolveRequirement } from './game_data.js';
+import { resolveRequirements } from './game_data.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -76,6 +76,17 @@ export async function initDb() {
       name TEXT NOT NULL,
       generation INTEGER NOT NULL,
       region TEXT NOT NULL
+    )
+  `);
+
+  await run(`
+    CREATE TABLE IF NOT EXISTS game_settings (
+      game_id TEXT PRIMARY KEY,
+      surf INTEGER DEFAULT 0,
+      rod TEXT DEFAULT 'none',
+      trade_link TEXT DEFAULT 'all',
+      active_section_id INTEGER,
+      FOREIGN KEY (game_id) REFERENCES games (id)
     )
   `);
 
@@ -254,35 +265,79 @@ async function seedMissingData() {
     sectionIdMap[`${row.game_id}_${row.order_index}`] = row.id;
   });
 
-  // 4. Seed requirements & corresponding progress rows
-  // To ensure requirements are always up-to-date with latest resolver rules (like evolution groupings),
-  // we rebuild them dynamically while preserving user progress from caught_pokemon.
-  await run("DELETE FROM progress");
-  await run("DELETE FROM requirements");
+  // 4. Seed requirements differentially to preserve checked box states
+  const existingReqs = await query("SELECT id, game_id, pokemon_id, action_type, location_details, section_id, notes FROM requirements");
+  const existingMap = {};
+  for (const r of existingReqs) {
+    const key = `${r.game_id}|${r.pokemon_id}|${r.action_type}|${r.location_details}`;
+    existingMap[key] = r;
+  }
+
+  const activeReqKeys = new Set();
 
   await run("BEGIN TRANSACTION");
   for (const game of gamesList) {
     const maxDex = game.gen === 1 ? 151 : (game.gen === 2 ? 251 : 386);
     for (let pid = 1; pid <= maxDex; pid++) {
-      const resolved = resolveRequirement(game.id, pid, pokemonMap);
-      const absoluteSecId = sectionIdMap[`${game.id}_${resolved.section_id}`];
-      if (!absoluteSecId) {
-        throw new Error(`Failed to map section for ${game.id} section index ${resolved.section_id}`);
+      const resolvedList = resolveRequirements(game.id, pid, pokemonMap);
+      for (const resolved of resolvedList) {
+        const absoluteSecId = sectionIdMap[`${game.id}_${resolved.section_id}`];
+        if (!absoluteSecId) {
+          throw new Error(`Failed to map section for ${game.id} section index ${resolved.section_id}`);
+        }
+        const key = `${game.id}|${pid}|${resolved.action_type}|${resolved.location_details}`;
+        activeReqKeys.add(key);
+
+        const existing = existingMap[key];
+        if (existing) {
+          if (existing.section_id !== absoluteSecId || existing.notes !== resolved.notes) {
+            await run(`
+              UPDATE requirements 
+              SET section_id = ?, notes = ?
+              WHERE id = ?
+            `, [absoluteSecId, resolved.notes, existing.id]);
+          }
+        } else {
+          await run(`
+            INSERT INTO requirements (game_id, section_id, pokemon_id, action_type, location_details, notes)
+            VALUES (?, ?, ?, ?, ?, ?)
+          `, [game.id, absoluteSecId, pid, resolved.action_type, resolved.location_details, resolved.notes]);
+        }
       }
-      await run(`
-        INSERT INTO requirements (game_id, section_id, pokemon_id, action_type, location_details, notes)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `, [game.id, absoluteSecId, pid, resolved.action_type, resolved.location_details, resolved.notes]);
+    }
+  }
+
+  // Delete requirements that are no longer in game_data (cascades to progress table)
+  for (const [key, existing] of Object.entries(existingMap)) {
+    if (!activeReqKeys.has(key)) {
+      await run("DELETE FROM requirements WHERE id = ?", [existing.id]);
     }
   }
   await run("COMMIT");
 
-  // 5. Re-synchronize progress status from persistent caught_pokemon table
+  // 5. Ensure every requirement has a progress row (defaulting to 0)
   await run(`
-    INSERT INTO progress (requirement_id, completed)
-    SELECT r.id, CASE WHEN cp.pokemon_id IS NOT NULL THEN 1 ELSE 0 END
-    FROM requirements r
-    LEFT JOIN caught_pokemon cp ON r.game_id = cp.game_id AND r.pokemon_id = cp.pokemon_id
+    INSERT OR IGNORE INTO progress (requirement_id, completed)
+    SELECT id, 0 FROM requirements
+  `);
+
+  // 6. Non-destructive migration/sync:
+  // If a pokemon is in caught_pokemon but has 0 checked requirements, check the earliest one.
+  await run(`
+    UPDATE progress
+    SET completed = 1
+    WHERE requirement_id IN (
+      SELECT MIN(r.id)
+      FROM requirements r
+      JOIN caught_pokemon cp ON r.game_id = cp.game_id AND r.pokemon_id = cp.pokemon_id
+      WHERE (
+        SELECT COUNT(*) 
+        FROM requirements r2
+        JOIN progress p2 ON r2.id = p2.requirement_id
+        WHERE r2.game_id = cp.game_id AND r2.pokemon_id = cp.pokemon_id AND p2.completed = 1
+      ) = 0
+      GROUP BY r.game_id, r.pokemon_id
+    )
   `);
 
   console.log("Database verification & differential seeding complete.");

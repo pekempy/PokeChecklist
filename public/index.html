@@ -11,8 +11,8 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
-  <link rel="manifest" href="/manifest.json" crossorigin="use-credentials">
+  <link rel="stylesheet" href="styles.css?v=9">
+  <link rel="manifest" href="/manifest.json?v=9" crossorigin="use-credentials">
   <meta name="theme-color" content="#121216">
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="https://img.icons8.com/color/48/pokeball.png">
@@ -31,6 +31,7 @@
         </div>
       </div>
       <div class="game-select-container">
+        <button id="reset-game-btn" class="reset-game-btn">Reset Game</button>
         <button id="set-default-game-btn" class="set-default-btn">Set Default Game</button>
         <div class="select-wrapper">
           <select id="game-select" class="custom-select">
@@ -39,12 +40,13 @@
         </div>
       </div>
     </div>
-    
+
     <!-- Global Search Bar -->
     <div class="search-container">
       <div class="search-box">
         <span class="search-icon">🔍</span>
-        <input type="text" id="global-search-input" placeholder="Search all 386 Pokémon (by name, dex #, type)..." autocomplete="off">
+        <input type="text" id="global-search-input" placeholder="Search all 386 Pokémon (by name, dex #, type)..."
+          autocomplete="off">
         <button id="clear-search-btn" class="clear-search-btn hidden">&times;</button>
       </div>
     </div>
@@ -86,15 +88,41 @@
 
     <!-- Filters Container -->
     <div class="filters-container">
-      <button id="filter-hide-caught" class="filter-btn">
-        <span class="filter-btn-icon">👁️</span> Hide Caught
-      </button>
-      <button id="filter-only-carryover" class="filter-btn">
-        <span class="filter-btn-icon">↩</span> Only Carry-Over
-      </button>
-      <button id="filter-hide-carryover" class="filter-btn">
-        <span class="filter-btn-icon">🚫</span> Hide Carry-Over
-      </button>
+      <div class="filter-group-left">
+        <button id="filter-hide-caught" class="filter-btn">
+          <span class="filter-btn-icon">👁️</span> Hide Caught
+        </button>
+        <button id="filter-only-carryover" class="filter-btn">
+          <span class="filter-btn-icon">↩</span> Only Carry-Over
+        </button>
+        <button id="filter-hide-carryover" class="filter-btn">
+          <span class="filter-btn-icon">🚫</span> Hide Carry-Over
+        </button>
+      </div>
+
+      <div class="filter-group-right">
+        <label class="tool-filter-checkbox" id="surf-filter-label">
+          <input type="checkbox" id="tool-surf">
+          <span>HM03 Surf</span>
+        </label>
+
+        <div class="tool-filter-select-wrapper">
+          <select id="tool-rod" class="tool-filter-select">
+            <option value="none">No Fishing Rod</option>
+            <option value="old">Old Rod</option>
+            <option value="good">Good Rod</option>
+            <option value="super">Super Rod</option>
+          </select>
+        </div>
+
+        <div class="tool-filter-select-wrapper">
+          <select id="filter-trade-link" class="tool-filter-select">
+            <option value="all">All Evolutions</option>
+            <option value="hide">Hide Trade Evo</option>
+            <option value="only">Only Trade Evo</option>
+          </select>
+        </div>
+      </div>
     </div>
 
     <!-- Checklist Items Grid -->
@@ -137,7 +165,26 @@
     </div>
   </div>
 
-  <script src="app.js" type="module"></script>
+  <!-- Custom Confirmation Modal -->
+  <div id="confirm-modal" class="modal hidden">
+    <div class="modal-overlay" id="confirm-modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="confirm-modal-title">Reset Game Progress</h3>
+        <button id="close-confirm-modal-btn" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <p id="confirm-modal-message"
+          style="margin: 0; line-height: 1.6; color: var(--text-secondary); font-size: 0.95rem;"></p>
+      </div>
+      <div class="modal-footer">
+        <button id="confirm-modal-cancel-btn" class="btn btn-secondary">Cancel</button>
+        <button id="confirm-modal-ok-btn" class="btn btn-primary">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=9" type="module"></script>
 </body>
 
 </html>

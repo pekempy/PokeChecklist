@@ -10,7 +10,66 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(express.json());
 
-// Serve static frontend files
+// In-memory cache of obtainable pokemon per game, computed recursively from requirements/evolutions on startup
+let obtainableMap = {};
+
+async function computeObtainability() {
+  try {
+    const allRequirements = await query('SELECT game_id, pokemon_id, action_type FROM requirements');
+    const map = {};
+
+    // 1. Initial pass: mark non-trade, non-evolve, non-breed requirements as obtainable
+    for (const req of allRequirements) {
+      const gId = req.game_id;
+      const pId = req.pokemon_id;
+      if (!map[gId]) {
+        map[gId] = {};
+      }
+      if (req.action_type !== 'TRADE' && req.action_type !== 'EVOLVE' && req.action_type !== 'BREED') {
+        map[gId][pId] = true;
+      }
+    }
+
+    // 2. Propagate evolution and breeding obtainability (run 5 times to handle up to stage 3)
+    for (let i = 0; i < 5; i++) {
+      for (const req of allRequirements) {
+        const gId = req.game_id;
+        const pId = req.pokemon_id;
+        if (req.action_type === 'EVOLVE') {
+          const evo = evolutions[pId];
+          if (evo && evo.from) {
+            const preObtainable = map[gId] && map[gId][evo.from];
+            if (preObtainable) {
+              if (!map[gId]) map[gId] = {};
+              map[gId][pId] = true;
+            }
+          }
+        }
+        if (req.action_type === 'BREED') {
+          const babyEvoTargetId = Object.keys(evolutions).find(key => evolutions[key].from === pId);
+          if (babyEvoTargetId) {
+            const parentObtainable = map[gId] && map[gId][Number(babyEvoTargetId)];
+            if (parentObtainable) {
+              if (!map[gId]) map[gId] = {};
+              map[gId][pId] = true;
+            }
+          }
+        }
+      }
+    }
+
+    obtainableMap = map;
+    console.log('Successfully computed static pokemon obtainability map.');
+  } catch (err) {
+    console.error('Failed to compute pokemon obtainability map:', err);
+  }
+}
+
+// Serve static frontend files with no-cache headers to prevent cached JS/CSS issues
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  next();
+});
 app.use(express.static(path.join(__dirname, 'public')));
 
 // API Endpoints
@@ -46,7 +105,7 @@ app.get('/api/sections', async (req, res) => {
 
 // 3. Get checklist requirements and progress for a specific game and section
 app.get('/api/checklist', async (req, res) => {
-  const { game_id, section_id } = req.query;
+  const { game_id } = req.query;
   if (!game_id) {
     return res.status(400).json({ error: 'game_id is required' });
   }
@@ -54,6 +113,7 @@ app.get('/api/checklist', async (req, res) => {
     let sql = `
       SELECT 
         r.id as requirement_id,
+        r.game_id,
         r.action_type,
         r.location_details,
         r.notes,
@@ -63,8 +123,10 @@ app.get('/api/checklist', async (req, res) => {
         p.type2 as pokemon_type2,
         s.id as section_id,
         s.name as section_name,
-        COALESCE(prog.completed, 0) as completed,
-        (SELECT group_concat(game_id) FROM caught_pokemon WHERE pokemon_id = p.id) as caught_games
+        s.order_index as section_order_index,
+        COALESCE(prog.completed, 0) as req_completed,
+        (SELECT group_concat(game_id) FROM caught_pokemon WHERE pokemon_id = p.id) as caught_games,
+        COALESCE((SELECT 1 FROM caught_pokemon cp WHERE cp.game_id = r.game_id AND cp.pokemon_id = p.id), 0) as completed
       FROM requirements r
       JOIN pokemon p ON r.pokemon_id = p.id
       JOIN sections s ON r.section_id = s.id
@@ -72,42 +134,142 @@ app.get('/api/checklist', async (req, res) => {
       WHERE r.game_id = ?
     `;
     const params = [game_id];
-
-    if (section_id) {
-      sql += ' AND r.section_id = ?';
-      params.push(section_id);
-    }
-
-    sql += ' ORDER BY s.order_index, p.id';
-
     const checklist = await query(sql, params);
     
     const gameGen = ['red', 'blue', 'yellow'].includes(game_id) ? 1 : (['gold', 'silver', 'crystal'].includes(game_id) ? 2 : 3);
     const maxDex = gameGen === 1 ? 151 : (gameGen === 2 ? 251 : 386);
 
-    // Add evolution stage to each item dynamically, ignoring baby forms not in the game's generation
-    const checklistWithStage = checklist.map(item => {
-      let stage = 1;
-      let currentId = item.pokemon_id;
-      while (evolutions[currentId]) {
-        const fromId = evolutions[currentId].from;
-        if (fromId > maxDex) {
-          // If the pre-evolution does not exist in this generation (e.g. Pichu in Gen 1), stop here.
-          break;
+    const games = ['red', 'blue', 'yellow', 'gold', 'silver', 'crystal', 'ruby', 'sapphire', 'emerald', 'firered', 'leafgreen'];
+
+    // Group requirements by pokemon_id
+    const pokemonGroups = {};
+    for (const row of checklist) {
+      const pid = row.pokemon_id;
+      if (!pokemonGroups[pid]) {
+        // Calculate evolution stage
+        let stage = 1;
+        let currentId = pid;
+        while (evolutions[currentId]) {
+          const fromId = evolutions[currentId].from;
+          if (fromId > maxDex) {
+            break;
+          }
+          stage++;
+          currentId = fromId;
         }
-        stage++;
-        currentId = fromId;
+
+        // Compute obtainable games using the pre-computed static map
+        const obtainable = [];
+        for (const g of games) {
+          if (obtainableMap[g] && obtainableMap[g][pid]) {
+            obtainable.push(g);
+          }
+        }
+
+        pokemonGroups[pid] = {
+          pokemon_id: pid,
+          pokemon_name: row.pokemon_name,
+          pokemon_type1: row.pokemon_type1,
+          pokemon_type2: row.pokemon_type2,
+          evolution_stage: stage,
+          obtainable_games: obtainable.join(','),
+          caught_games: row.caught_games || '',
+          completed: row.completed,
+          section_id: row.section_id,
+          section_name: row.section_name,
+          section_order_index: row.section_order_index,
+          requirements: []
+        };
       }
-      return {
-        ...item,
-        evolution_stage: stage
-      };
+
+      // Update earliest section
+      if (row.section_order_index < pokemonGroups[pid].section_order_index) {
+        pokemonGroups[pid].section_id = row.section_id;
+        pokemonGroups[pid].section_name = row.section_name;
+        pokemonGroups[pid].section_order_index = row.section_order_index;
+      }
+
+      pokemonGroups[pid].requirements.push({
+        requirement_id: row.requirement_id,
+        action_type: row.action_type,
+        location_details: row.location_details,
+        notes: row.notes,
+        section_id: row.section_id,
+        section_name: row.section_name,
+        completed: row.req_completed
+      });
+    }
+
+    // Convert groups map to array, sort by earliest section order_index, then by pokemon_id
+    const groupedList = Object.values(pokemonGroups).sort((a, b) => {
+      if (a.section_order_index !== b.section_order_index) {
+        return a.section_order_index - b.section_order_index;
+      }
+      return a.pokemon_id - b.pokemon_id;
     });
-    
-    res.json(checklistWithStage);
+
+    res.json(groupedList);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to retrieve checklist' });
+  }
+});
+
+// Get static evolutions dictionary
+app.get('/api/evolutions', (req, res) => {
+  res.json(evolutions);
+});
+
+// Get settings for a game
+app.get('/api/settings', async (req, res) => {
+  const { game_id } = req.query;
+  if (!game_id) {
+    return res.status(400).json({ error: 'game_id is required' });
+  }
+  try {
+    const row = await query('SELECT * FROM game_settings WHERE game_id = ?', [game_id]);
+    if (row.length > 0) {
+      res.json({
+        surf: row[0].surf === 1,
+        rod: row[0].rod,
+        trade_link: row[0].trade_link,
+        active_section_id: row[0].active_section_id
+      });
+    } else {
+      res.json({
+        surf: false,
+        rod: 'none',
+        trade_link: 'all',
+        active_section_id: null
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to retrieve settings' });
+  }
+});
+
+// Save settings for a game
+app.post('/api/settings', async (req, res) => {
+  const { game_id, surf, rod, trade_link, active_section_id } = req.body;
+  if (!game_id) {
+    return res.status(400).json({ error: 'game_id is required' });
+  }
+  const surfVal = surf ? 1 : 0;
+  try {
+    await run(`
+      INSERT INTO game_settings (game_id, surf, rod, trade_link, active_section_id)
+      VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT(game_id) DO UPDATE SET
+        surf = EXCLUDED.surf,
+        rod = EXCLUDED.rod,
+        trade_link = EXCLUDED.trade_link,
+        active_section_id = EXCLUDED.active_section_id
+    `, [game_id, surfVal, rod || 'none', trade_link || 'all', active_section_id || null]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to save settings' });
   }
 });
 
@@ -266,6 +428,63 @@ app.get('/api/caught_pokemon', async (req, res) => {
   }
 });
 
+// 4cd. Release a caught Pokémon from a game (mark NOT caught)
+app.post('/api/release_pokemon', async (req, res) => {
+  const { game_id, pokemon_id } = req.body;
+  if (!game_id || !pokemon_id) {
+    return res.status(400).json({ error: 'game_id and pokemon_id are required' });
+  }
+  try {
+    // 1. Delete from caught_pokemon
+    await run('DELETE FROM caught_pokemon WHERE game_id = ? AND pokemon_id = ?', [game_id, pokemon_id]);
+
+    // 2. Set progress completed to 0 for all requirements of this pokemon in this game
+    await run(`
+      UPDATE progress 
+      SET completed = 0, updated_at = CURRENT_TIMESTAMP
+      WHERE requirement_id IN (
+        SELECT id FROM requirements WHERE game_id = ? AND pokemon_id = ?
+      )
+    `, [game_id, pokemon_id]);
+
+    // 3. Return updated caught_games list
+    const caughtRows = await query('SELECT game_id FROM caught_pokemon WHERE pokemon_id = ?', [pokemon_id]);
+    const caught_games = caughtRows.map(r => r.game_id);
+
+    res.json({ success: true, game_id, pokemon_id, caught_games });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to release Pokémon' });
+  }
+});
+
+// 4d. Reset progress for a specific game
+app.post('/api/reset_game', async (req, res) => {
+  const { game_id } = req.body;
+  if (!game_id) {
+    return res.status(400).json({ error: 'game_id is required' });
+  }
+
+  try {
+    // 1. Delete caught_pokemon entries for this game
+    await run('DELETE FROM caught_pokemon WHERE game_id = ?', [game_id]);
+
+    // 2. Set completed to 0 for all progress requirements of this game
+    await run(`
+      UPDATE progress 
+      SET completed = 0, updated_at = CURRENT_TIMESTAMP
+      WHERE requirement_id IN (
+        SELECT id FROM requirements WHERE game_id = ?
+      )
+    `, [game_id]);
+
+    res.json({ success: true, game_id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to reset game progress' });
+  }
+});
+
 // 4d. Search all Pokémon globally with location details across games
 app.get('/api/search', async (req, res) => {
   const { q } = req.query;
@@ -288,6 +507,15 @@ app.get('/api/search', async (req, res) => {
       // Get all caught games
       const caughtRows = await query('SELECT game_id FROM caught_pokemon WHERE pokemon_id = ?', [p.id]);
       const caught_games = caughtRows.map(r => r.game_id);
+
+      // Compute obtainable games using the pre-computed static map
+      const games = ['red', 'blue', 'yellow', 'gold', 'silver', 'crystal', 'ruby', 'sapphire', 'emerald', 'firered', 'leafgreen'];
+      const obtainable_games = [];
+      for (const g of games) {
+        if (obtainableMap[g] && obtainableMap[g][p.id]) {
+          obtainable_games.push(g);
+        }
+      }
 
       // Get requirements (encounters) for each game where this pokemon exists
       const requirements = await query(`
@@ -314,6 +542,7 @@ app.get('/api/search', async (req, res) => {
         pokemon_type1: p.type1,
         pokemon_type2: p.type2,
         caught_games,
+        obtainable_games,
         requirements
       });
     }
@@ -332,21 +561,21 @@ app.get('/api/progress/summary', async (req, res) => {
     return res.status(400).json({ error: 'game_id is required' });
   }
   try {
-    const summary = await query(`
-      SELECT 
-        COUNT(r.id) as total_count,
-        SUM(COALESCE(p.completed, 0)) as completed_count
-      FROM requirements r
-      LEFT JOIN progress p ON r.id = p.requirement_id
-      WHERE r.game_id = ?
-    `, [game_id]);
+    const gameGen = ['red', 'blue', 'yellow'].includes(game_id) ? 1 : (['gold', 'silver', 'crystal'].includes(game_id) ? 2 : 3);
+    const maxDex = gameGen === 1 ? 151 : (gameGen === 2 ? 251 : 386);
+
+    const caughtCountRow = await query(`
+      SELECT COUNT(DISTINCT pokemon_id) as completed_count
+      FROM caught_pokemon
+      WHERE game_id = ? AND pokemon_id <= ?
+    `, [game_id, maxDex]);
+
+    const completed = caughtCountRow[0].completed_count || 0;
 
     const stats = {
-      total: summary[0].total_count || 0,
-      completed: summary[0].completed_count || 0,
-      percentage: summary[0].total_count 
-        ? Math.round((summary[0].completed_count / summary[0].total_count) * 100) 
-        : 0
+      total: maxDex,
+      completed: completed,
+      percentage: maxDex ? Math.round((completed / maxDex) * 100) : 0
     };
 
     res.json(stats);
@@ -362,6 +591,7 @@ const PORT = process.env.PORT || 3000;
 async function start() {
   try {
     await initDb();
+    await computeObtainability();
     app.listen(PORT, () => {
       console.log(`Server running at http://localhost:${PORT}`);
     });

@@ -164,6 +164,30 @@ body {
   background-color: rgba(255, 222, 0, 0.1);
 }
 
+.reset-game-btn {
+  background-color: #161622;
+  border: 1px solid rgba(255, 60, 60, 0.25);
+  color: #ff6b6b;
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 0 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  outline: none;
+}
+
+.reset-game-btn:hover {
+  border-color: #ff4d4d;
+  background-color: rgba(255, 60, 60, 0.08);
+  transform: scale(1.05);
+}
+
 .custom-select {
   background-color: #161622;
   color: var(--text-primary);
@@ -332,17 +356,71 @@ body {
 }
 
 /* Game specific colors for search results tags */
-.tag-red { background-color: rgba(230, 57, 70, 0.2); color: #e63946; border: 1px solid rgba(230, 57, 70, 0.3); }
-.tag-blue { background-color: rgba(69, 123, 157, 0.2); color: #a8dadc; border: 1px solid rgba(69, 123, 157, 0.3); }
-.tag-yellow { background-color: rgba(255, 183, 3, 0.2); color: #ffb703; border: 1px solid rgba(255, 183, 3, 0.3); }
-.tag-gold { background-color: rgba(212, 175, 55, 0.2); color: #d4af37; border: 1px solid rgba(212, 175, 55, 0.3); }
-.tag-silver { background-color: rgba(192, 192, 192, 0.2); color: #c0c0c0; border: 1px solid rgba(192, 192, 192, 0.3); }
-.tag-crystal { background-color: rgba(74, 201, 224, 0.2); color: #4ac9e0; border: 1px solid rgba(74, 201, 224, 0.3); }
-.tag-ruby { background-color: rgba(165, 42, 42, 0.2); color: #ff6b6b; border: 1px solid rgba(165, 42, 42, 0.3); }
-.tag-sapphire { background-color: rgba(30, 144, 255, 0.2); color: #1e90ff; border: 1px solid rgba(30, 144, 255, 0.3); }
-.tag-emerald { background-color: rgba(80, 200, 120, 0.2); color: #50c878; border: 1px solid rgba(80, 200, 120, 0.3); }
-.tag-firered { background-color: rgba(255, 99, 71, 0.2); color: #ff6347; border: 1px solid rgba(255, 99, 71, 0.3); }
-.tag-leafgreen { background-color: rgba(50, 205, 50, 0.2); color: #32cd32; border: 1px solid rgba(50, 205, 50, 0.3); }
+.tag-red {
+  background-color: rgba(230, 57, 70, 0.2);
+  color: #e63946;
+  border: 1px solid rgba(230, 57, 70, 0.3);
+}
+
+.tag-blue {
+  background-color: rgba(69, 123, 157, 0.2);
+  color: #a8dadc;
+  border: 1px solid rgba(69, 123, 157, 0.3);
+}
+
+.tag-yellow {
+  background-color: rgba(255, 183, 3, 0.2);
+  color: #ffb703;
+  border: 1px solid rgba(255, 183, 3, 0.3);
+}
+
+.tag-gold {
+  background-color: rgba(212, 175, 55, 0.2);
+  color: #d4af37;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.tag-silver {
+  background-color: rgba(192, 192, 192, 0.2);
+  color: #c0c0c0;
+  border: 1px solid rgba(192, 192, 192, 0.3);
+}
+
+.tag-crystal {
+  background-color: rgba(74, 201, 224, 0.2);
+  color: #4ac9e0;
+  border: 1px solid rgba(74, 201, 224, 0.3);
+}
+
+.tag-ruby {
+  background-color: rgba(165, 42, 42, 0.2);
+  color: #ff6b6b;
+  border: 1px solid rgba(165, 42, 42, 0.3);
+}
+
+.tag-sapphire {
+  background-color: rgba(30, 144, 255, 0.2);
+  color: #1e90ff;
+  border: 1px solid rgba(30, 144, 255, 0.3);
+}
+
+.tag-emerald {
+  background-color: rgba(80, 200, 120, 0.2);
+  color: #50c878;
+  border: 1px solid rgba(80, 200, 120, 0.3);
+}
+
+.tag-firered {
+  background-color: rgba(255, 99, 71, 0.2);
+  color: #ff6347;
+  border: 1px solid rgba(255, 99, 71, 0.3);
+}
+
+.tag-leafgreen {
+  background-color: rgba(50, 205, 50, 0.2);
+  color: #32cd32;
+  border: 1px solid rgba(50, 205, 50, 0.3);
+}
 
 .encounter-info {
   flex: 1;
@@ -582,9 +660,10 @@ body {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 16px;
-  padding: 12px 14px;
+  padding: 14px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: 12px;
   box-shadow: var(--card-shadow);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -600,13 +679,10 @@ body {
 .checklist-card.checked {
   background: rgba(18, 28, 22, 0.4);
   border-color: var(--success-green-glow);
-  padding: 6px 14px;
+  padding: 10px 14px;
 }
 
-.checklist-card.checked .location-row,
-.checklist-card.checked .notes-row {
-  display: none !important;
-}
+
 
 .checklist-card.checked::after {
   content: '';
@@ -618,6 +694,53 @@ body {
   border-style: solid;
   border-width: 0 24px 24px 0;
   border-color: transparent var(--success-green) transparent transparent;
+}
+
+.checklist-encounters-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.checklist-encounter-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.checklist-encounter-item:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.checklist-encounter-item.checked {
+  background-color: rgba(64, 192, 87, 0.05);
+  border-color: rgba(64, 192, 87, 0.2);
+}
+
+.checklist-encounter-item.checked .custom-checkbox {
+  border-color: var(--success-green);
+  background-color: var(--success-green);
+  box-shadow: 0 0 8px var(--success-green-glow);
+}
+
+.checklist-encounter-item.checked .custom-checkbox::after {
+  transform: rotate(45deg) scale(1);
+}
+
+.checklist-encounter-item.checked .location-text,
+.checklist-encounter-item.checked .notes-row {
+  color: var(--text-secondary);
+  text-decoration: line-through;
 }
 
 .checklist-card.evo-stage-2 {
@@ -651,11 +774,7 @@ body {
   position: relative;
 }
 
-.checklist-card.checked .custom-checkbox {
-  border-color: var(--success-green);
-  background-color: var(--success-green);
-  box-shadow: 0 0 8px var(--success-green-glow);
-}
+
 
 .custom-checkbox::after {
   content: '';
@@ -668,9 +787,7 @@ body {
   margin-top: -2px;
 }
 
-.checklist-card.checked .custom-checkbox::after {
-  transform: rotate(45deg) scale(1);
-}
+
 
 /* Card Content Details */
 .card-content {
@@ -831,34 +948,17 @@ body {
   margin-top: 2px;
 }
 
-.action-badge {
-  font-size: 0.6rem;
-  font-weight: 800;
-  padding: 1px 4px;
-  border-radius: 3px;
-  color: #fff;
-  text-transform: uppercase;
+.action-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
 }
 
-.action-catch {
-  background-color: #007bff;
-}
-
-.action-evolve {
-  background-color: #fd7e14;
-}
-
-.action-gift {
-  background-color: #6f42c1;
-}
-
-.action-train {
-  background-color: #e0a800;
-  color: #000;
-}
-
-.action-trade {
-  background-color: #e83e8c;
+.action-icon:hover {
+  opacity: 1;
 }
 
 .location-text {
@@ -883,7 +983,6 @@ body {
 }
 
 .notes-row::before {
-  content: '💡';
   font-style: normal;
 }
 
@@ -994,6 +1093,11 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.05);
   transition: all 0.3s ease;
   user-select: none;
+}
+
+.game-badge.unobtainable {
+  color: #ff3333;
+  border-color: rgba(255, 51, 51, 0.2);
 }
 
 .game-badge.group-end {
@@ -1377,6 +1481,16 @@ body {
   transform: none;
 }
 
+.btn-danger {
+  background-color: #ff3c3c;
+  color: #ffffff;
+}
+
+.btn-danger:hover {
+  background-color: #ff5555;
+  transform: translateY(-1px);
+}
+
 /* Search Encounter Checked States */
 .search-encounter-item.checked {
   background-color: rgba(64, 192, 87, 0.05);
@@ -1397,4 +1511,119 @@ body {
 .search-encounter-item.checked .encounter-notes {
   color: var(--text-secondary);
   text-decoration: line-through;
+}
+
+/* Tool Filters Layout and Aesthetics */
+.filter-group-left,
+.filter-group-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-group-right {
+  margin-left: auto;
+}
+
+.filters-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 768px) {
+  .filter-group-right {
+    margin-left: 0;
+    width: 100%;
+    margin-top: 5px;
+  }
+}
+
+.tool-filter-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #161622;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.tool-filter-checkbox:hover {
+  border-color: rgba(255, 222, 0, 0.2);
+  color: var(--text-primary);
+}
+
+.tool-filter-checkbox input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  outline: none;
+  background-color: #0b0b14;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  margin: 0;
+}
+
+.tool-filter-checkbox input[type="checkbox"]:checked {
+  background-color: var(--accent-yellow);
+  border-color: var(--accent-yellow);
+}
+
+.tool-filter-checkbox input[type="checkbox"]:checked::after {
+  content: "✓";
+  font-size: 9px;
+  color: #000;
+  font-weight: bold;
+}
+
+.tool-filter-select-wrapper {
+  position: relative;
+}
+
+.tool-filter-select {
+  background-color: #161622;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 28px;
+}
+
+.tool-filter-select:hover {
+  border-color: rgba(255, 222, 0, 0.2);
+  color: var(--text-primary);
+}
+
+.tool-filter-select-wrapper::after {
+  content: "▼";
+  font-size: 8px;
+  color: var(--text-secondary);
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
 }

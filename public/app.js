@@ -10,8 +10,11 @@ let state = {
   filters: {
     hideCaught: false,
     onlyCarryover: false,
-    hideCarryover: false
+    hideCarryover: false,
+    tradeLink: 'all'
   },
+  gameFilters: {}, // Maps gameId -> { surf: false, rod: 'none' }
+  evolutions: {}, // Static evolution map from database/server
   searchQuery: '',
   searchResults: []
 };
@@ -30,6 +33,14 @@ const progressRatio = document.getElementById('progress-ratio');
 
 // Initialize Application
 window.addEventListener('DOMContentLoaded', async () => {
+  // Load evolutions metadata
+  try {
+    const evolRes = await fetch('/api/evolutions');
+    state.evolutions = await evolRes.json();
+  } catch (err) {
+    console.error('Failed to load evolutions mapping:', err);
+  }
+
   await loadGames();
   
   // Set default game from localStorage if available, otherwise Yellow, otherwise first game
@@ -46,6 +57,87 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
   
   await handleGameChange();
+
+  // Helper for custom confirmation modals
+  function showCustomConfirm({ title, message, okText, okClass, onConfirm }) {
+    const modal = document.getElementById('confirm-modal');
+    const titleEl = document.getElementById('confirm-modal-title');
+    const msgEl = document.getElementById('confirm-modal-message');
+    const cancelBtn = document.getElementById('confirm-modal-cancel-btn');
+    const okBtn = document.getElementById('confirm-modal-ok-btn');
+    const closeBtn = document.getElementById('close-confirm-modal-btn');
+    const overlay = document.getElementById('confirm-modal-overlay');
+
+    if (!modal || !titleEl || !msgEl || !cancelBtn || !okBtn) return;
+
+    titleEl.textContent = title;
+    msgEl.textContent = message;
+    okBtn.textContent = okText || 'Confirm';
+    okBtn.className = `btn ${okClass || 'btn-primary'}`;
+
+    modal.classList.remove('hidden');
+
+    const cleanup = () => {
+      modal.classList.add('hidden');
+      okBtn.replaceWith(okBtn.cloneNode(true));
+      cancelBtn.replaceWith(cancelBtn.cloneNode(true));
+      closeBtn.replaceWith(closeBtn.cloneNode(true));
+      overlay.replaceWith(overlay.cloneNode(true));
+    };
+
+    document.getElementById('confirm-modal-cancel-btn').addEventListener('click', cleanup);
+    document.getElementById('close-confirm-modal-btn').addEventListener('click', cleanup);
+    document.getElementById('confirm-modal-overlay').addEventListener('click', cleanup);
+
+    document.getElementById('confirm-modal-ok-btn').addEventListener('click', () => {
+      cleanup();
+      if (onConfirm) onConfirm();
+    });
+  }
+
+  // Reset Game Event Listener
+  const resetGameBtn = document.getElementById('reset-game-btn');
+  if (resetGameBtn) {
+    resetGameBtn.addEventListener('click', () => {
+      const activeGame = state.games.find(g => g.id === state.selectedGameId);
+      const gameName = activeGame ? activeGame.name : state.selectedGameId;
+      
+      showCustomConfirm({
+        title: 'Reset Game Progress',
+        message: `Are you sure you want to reset all catch and evolution progress for ${gameName}?`,
+        okText: 'Yes, Reset',
+        okClass: 'btn-danger',
+        onConfirm: () => {
+          showCustomConfirm({
+            title: '⚠️ Irreversible Action',
+            message: `WARNING: This action is completely irreversible. All caught status and checklists for ${gameName} will be wiped. Are you absolutely sure?`,
+            okText: "I'm Sure, Reset Progress",
+            okClass: 'btn-danger',
+            onConfirm: async () => {
+              try {
+                const response = await fetch('/api/reset_game', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ game_id: state.selectedGameId })
+                });
+                const result = await response.json();
+                if (result.success) {
+                  await handleGameChange();
+                } else {
+                  alert('Failed to reset game progress: ' + (result.error || 'Unknown error'));
+                }
+              } catch (err) {
+                console.error(err);
+                alert('Failed to reset game progress due to network/server error.');
+              }
+            }
+          });
+        }
+      });
+    });
+  }
 
   // Set Default Game Event Listener
   const setDefaultGameBtn = document.getElementById('set-default-game-btn');
@@ -94,6 +186,19 @@ window.addEventListener('DOMContentLoaded', async () => {
       renderChecklistCards();
     });
   }
+
+  const filterTradeLink = document.getElementById('filter-trade-link');
+  if (filterTradeLink) {
+    filterTradeLink.addEventListener('change', (e) => {
+      if (!state.gameFilters[state.selectedGameId]) {
+        state.gameFilters[state.selectedGameId] = { surf: false, rod: 'none', trade_link: 'all', active_section_id: null };
+      }
+      state.gameFilters[state.selectedGameId].trade_link = e.target.value;
+      state.filters.tradeLink = e.target.value;
+      saveGameFilters();
+      renderChecklistCards();
+    });
+  }
   // Search Input Event Listener
   const searchInput = document.getElementById('global-search-input');
   const clearSearchBtn = document.getElementById('clear-search-btn');
@@ -121,7 +226,88 @@ window.addEventListener('DOMContentLoaded', async () => {
     state.selectedGameId = e.target.value;
     await handleGameChange();
   });
+
+  // Tool Filters Event Listeners
+  const surfCheckbox = document.getElementById('tool-surf');
+  if (surfCheckbox) {
+    surfCheckbox.addEventListener('change', (e) => {
+      if (!state.gameFilters[state.selectedGameId]) {
+        state.gameFilters[state.selectedGameId] = { surf: false, rod: 'none', trade_link: 'all', active_section_id: null };
+      }
+      state.gameFilters[state.selectedGameId].surf = e.target.checked;
+      saveGameFilters();
+      renderChecklistCards();
+    });
+  }
+
+  const rodSelect = document.getElementById('tool-rod');
+  if (rodSelect) {
+    rodSelect.addEventListener('change', (e) => {
+      if (!state.gameFilters[state.selectedGameId]) {
+        state.gameFilters[state.selectedGameId] = { surf: false, rod: 'none', trade_link: 'all', active_section_id: null };
+      }
+      state.gameFilters[state.selectedGameId].rod = e.target.value;
+      saveGameFilters();
+      renderChecklistCards();
+    });
+  }
 });
+
+async function loadAndSyncGameFilters() {
+  try {
+    const res = await fetch(`/api/settings?game_id=${state.selectedGameId}`);
+    const settings = await res.json();
+    state.gameFilters[state.selectedGameId] = {
+      surf: !!settings.surf,
+      rod: settings.rod || 'none',
+      trade_link: settings.trade_link || 'all',
+      active_section_id: settings.active_section_id || null
+    };
+  } catch (err) {
+    console.error('Failed to load settings from server, falling back to defaults:', err);
+    state.gameFilters[state.selectedGameId] = {
+      surf: false,
+      rod: 'none',
+      trade_link: 'all',
+      active_section_id: null
+    };
+  }
+
+  // Sync to UI
+  const currentFilters = state.gameFilters[state.selectedGameId];
+  const surfCheckbox = document.getElementById('tool-surf');
+  if (surfCheckbox) {
+    surfCheckbox.checked = !!currentFilters.surf;
+  }
+  const rodSelect = document.getElementById('tool-rod');
+  if (rodSelect) {
+    rodSelect.value = currentFilters.rod || 'none';
+  }
+  const tradeSelect = document.getElementById('filter-trade-link');
+  if (tradeSelect) {
+    tradeSelect.value = currentFilters.trade_link || 'all';
+  }
+  state.filters.tradeLink = currentFilters.trade_link || 'all';
+}
+
+async function saveGameFilters() {
+  const current = state.gameFilters[state.selectedGameId] || { surf: false, rod: 'none', trade_link: 'all', active_section_id: null };
+  try {
+    await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        game_id: state.selectedGameId,
+        surf: current.surf,
+        rod: current.rod,
+        trade_link: current.trade_link,
+        active_section_id: current.active_section_id
+      })
+    });
+  } catch (err) {
+    console.error('Failed to save settings:', err);
+  }
+}
 
 function updateDefaultGameButton() {
   const setDefaultGameBtn = document.getElementById('set-default-game-btn');
@@ -177,6 +363,7 @@ async function loadGames() {
 // Handle switching to a different game
 async function handleGameChange() {
   try {
+    await loadAndSyncGameFilters();
     // Clear search when switching game
     const searchInput = document.getElementById('global-search-input');
     if (searchInput) searchInput.value = '';
@@ -210,9 +397,21 @@ async function handleGameChange() {
     // 3. Render section pills (navigation)
     renderSectionPills();
 
-    // 4. Default to the first section
+    // 4. Restore saved section or default to the first section
     if (state.sections.length > 0) {
-      selectSection(state.sections[0].id);
+      const dbSectionId = state.gameFilters[state.selectedGameId] && state.gameFilters[state.selectedGameId].active_section_id;
+      const dbSectionExists = dbSectionId && state.sections.some(s => Number(s.id) === Number(dbSectionId));
+      if (dbSectionExists) {
+        selectSection(Number(dbSectionId));
+      } else {
+        const savedSectionId = localStorage.getItem(`pokechecklist_active_section_${state.selectedGameId}`);
+        const sectionExists = savedSectionId && state.sections.some(s => String(s.id) === String(savedSectionId));
+        if (sectionExists) {
+          selectSection(Number(savedSectionId));
+        } else {
+          selectSection(state.sections[0].id);
+        }
+      }
     }
     
     // 5. Update progress bar
@@ -266,6 +465,12 @@ function renderSectionPills() {
 // Select and display a checklist section
 function selectSection(sectionId) {
   state.selectedSectionId = sectionId;
+  if (!state.gameFilters[state.selectedGameId]) {
+    state.gameFilters[state.selectedGameId] = { surf: false, rod: 'none', trade_link: 'all', active_section_id: null };
+  }
+  state.gameFilters[state.selectedGameId].active_section_id = sectionId;
+  saveGameFilters();
+  localStorage.setItem(`pokechecklist_active_section_${state.selectedGameId}`, sectionId);
   
   // Highlight active pill
   const pills = sectionNav.querySelectorAll('.nav-pill');
@@ -289,6 +494,135 @@ function selectSection(sectionId) {
   renderChecklistCards();
 }
 
+// Map action type + location/method to an icon badge
+function getActionIconHtml(actionType, locationDetails, notes) {
+  const loc = (locationDetails || '').toLowerCase();
+  const n = (notes || '').toLowerCase();
+  let icon = '';
+  let label = actionType;
+  let cls = `action-${actionType.toLowerCase()}`;
+
+  if (actionType === 'CATCH') {
+    if (loc.includes('surf')) {
+      icon = '/icons/icons8-water-element-100.png';
+      label = 'Surf';
+      cls = 'action-surf';
+    } else if (loc.includes('fish') || loc.includes('rod')) {
+      icon = '/icons/icons8-fishing-pole-100.png';
+      label = 'Fish';
+      cls = 'action-fish';
+    } else {
+      icon = '/icons/icons8-grass-100.png';
+      label = 'Catch';
+      cls = 'action-catch';
+    }
+  } else if (actionType === 'TRADE') {
+    icon = '/icons/icons8-swap-100.png';
+    label = 'Trade';
+    cls = 'action-trade';
+  } else if (actionType === 'EVOLVE') {
+    // Item evolutions: stones, trade items, etc.
+    const itemKeywords = ['stone', 'scale', 'tooth', 'coat', 'upgrade', 'friendship', 'beauty', 'trade link', 'prism'];
+    const isItemEvo = itemKeywords.some(k => n.includes(k));
+    if (isItemEvo) {
+      icon = '/icons/icons8-holding-box-100.png';
+      label = 'Evolve';
+      cls = 'action-evolve-item';
+    } else {
+      icon = '/icons/icons8-level-up-100.png';
+      label = 'Evolve';
+      cls = 'action-evolve';
+    }
+  } else if (actionType === 'GIFT') {
+    icon = '/icons/icons8-grass-100.png';
+    label = 'Gift';
+    cls = 'action-gift';
+  } else if (actionType === 'BREED') {
+    icon = '/icons/icons8-holding-box-100.png';
+    label = 'Breed';
+    cls = 'action-breed';
+  }
+
+  if (icon) {
+    return `<img src="${icon}" alt="${label}" class="action-icon" title="${label}">`;
+  }
+  return '';
+}
+
+// Helper to check if a single requirement passes progression tool filters (Surf, Fishing Rods)
+function passesProgressionFilters(req, currentFilters) {
+  const loc = (req.location_details || '').toLowerCase();
+  
+  // Check HM03 Surf
+  if (loc.includes('surf') && !currentFilters.surf) {
+    return false;
+  }
+  
+  // Check Fishing Rods
+  if (loc.includes('fishing') || loc.includes('rod')) {
+    let requiredRod = 'old';
+    if (loc.includes('super')) {
+      requiredRod = 'super';
+    } else if (loc.includes('good')) {
+      requiredRod = 'good';
+    }
+    
+    const rodValues = { none: 0, old: 1, good: 2, super: 3 };
+    const userRodVal = rodValues[currentFilters.rod] || 0;
+    const reqRodVal = rodValues[requiredRod];
+    
+    if (userRodVal < reqRodVal) {
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+// Helper to check recursively if a Pokémon is obtainable in the active game under current progression filters
+function isPokemonObtainable(pokemonId, currentFilters, memo = {}) {
+  if (pokemonId in memo) return memo[pokemonId];
+  
+  // Prevent infinite loops by temporarily setting to false
+  memo[pokemonId] = false;
+  
+  const pkmn = state.checklistItems.find(p => p.pokemon_id === pokemonId);
+  if (!pkmn) {
+    return false;
+  }
+  
+  // If already completed in the current game, it's obtainable/obtained
+  if (pkmn.completed === 1) {
+    memo[pokemonId] = true;
+    return true;
+  }
+  
+  const isObtainable = pkmn.requirements.some(req => {
+    if (req.action_type === 'CATCH' || req.action_type === 'GIFT') {
+      return passesProgressionFilters(req, currentFilters);
+    }
+    if (req.action_type === 'TRADE') {
+      return req.location_details !== 'Link Trade';
+    }
+    if (req.action_type === 'EVOLVE') {
+      const evo = state.evolutions && state.evolutions[pokemonId];
+      if (evo && evo.from) {
+        return isPokemonObtainable(evo.from, currentFilters, memo);
+      }
+    }
+    if (req.action_type === 'BREED') {
+      const babyEvoTargetId = Object.keys(state.evolutions).find(key => state.evolutions[key].from === pokemonId);
+      if (babyEvoTargetId) {
+        return isPokemonObtainable(Number(babyEvoTargetId), currentFilters, memo);
+      }
+    }
+    return false;
+  });
+  
+  memo[pokemonId] = isObtainable;
+  return isObtainable;
+}
+
 // Render checklist item cards for the selected section
 function renderChecklistCards() {
   checklistGrid.innerHTML = '';
@@ -296,16 +630,16 @@ function renderChecklistCards() {
   const currentSection = state.sections.find(s => s.id === state.selectedSectionId);
   const currentOrderIndex = currentSection ? currentSection.order_index : 1;
 
-  let filteredItems = state.checklistItems.filter(item => {
-    if (item.section_id === state.selectedSectionId) {
-      return true;
-    }
+  // 1. Current section items
+  const currentSectionItems = state.checklistItems.filter(item => item.section_id === state.selectedSectionId);
+
+  // 2. Direct carry over items (uncompleted pokemon from previous sections)
+  const finalCarryOvers = state.checklistItems.filter(item => {
     const itemSection = state.sections.find(s => s.id === item.section_id);
-    if (itemSection && itemSection.order_index < currentOrderIndex) {
-      return item.completed === 0 && item.action_type === 'EVOLVE';
-    }
-    return false;
+    return itemSection && itemSection.order_index < currentOrderIndex && item.completed === 0;
   });
+
+  let filteredItems = [...currentSectionItems, ...finalCarryOvers];
 
   if (state.filters.hideCaught) {
     filteredItems = filteredItems.filter(item => item.completed === 0);
@@ -319,8 +653,58 @@ function renderChecklistCards() {
     filteredItems = filteredItems.filter(item => item.section_id === state.selectedSectionId);
   }
 
+  // Apply Trade Link & Trade Evolution filter
+  if (state.filters.tradeLink && state.filters.tradeLink !== 'all') {
+    filteredItems = filteredItems.filter(item => {
+      const hasTrade = item.requirements.some(req => {
+        const evo = state.evolutions && state.evolutions[item.pokemon_id];
+        const isTradeEvo = evo && evo.method && evo.method.toLowerCase().includes('trade');
+        const isTradeLinkNotes = req.notes && req.notes.toLowerCase().includes('trade link');
+        return req.action_type === 'TRADE' || isTradeEvo || isTradeLinkNotes;
+      });
+
+      if (state.filters.tradeLink === 'hide') {
+        return !hasTrade;
+      } else if (state.filters.tradeLink === 'only') {
+        return hasTrade;
+      }
+      return true;
+    });
+  }
+
+  // Apply HM03 Surf and Fishing Rod filters (per-game progression tools), including recursive evolution obtainability
+  const currentFilters = state.gameFilters[state.selectedGameId] || { surf: false, rod: 'none' };
+  
+  filteredItems = filteredItems.map(item => {
+    // Filter the requirements inside this item
+    const validReqs = item.requirements.filter(req => {
+      if (req.action_type === 'CATCH' || req.action_type === 'GIFT') {
+        return passesProgressionFilters(req, currentFilters);
+      }
+      if (req.action_type === 'EVOLVE') {
+        const evo = state.evolutions && state.evolutions[item.pokemon_id];
+        if (evo && evo.from) {
+          // If the pre-evolution isn't obtainable, hide the evolution card/method
+          return isPokemonObtainable(evo.from, currentFilters);
+        }
+      }
+      if (req.action_type === 'BREED') {
+        const babyEvoTargetId = Object.keys(state.evolutions).find(key => state.evolutions[key].from === item.pokemon_id);
+        if (babyEvoTargetId) {
+          return isPokemonObtainable(Number(babyEvoTargetId), currentFilters);
+        }
+      }
+      return true;
+    });
+
+    return {
+      ...item,
+      requirements: validReqs
+    };
+  }).filter(item => item.requirements.length > 0);
+
   if (filteredItems.length === 0) {
-    const hasActiveFilters = state.filters.hideCaught || state.filters.onlyCarryover || state.filters.hideCarryover;
+    const hasActiveFilters = state.filters.hideCaught || state.filters.onlyCarryover || state.filters.hideCarryover || state.filters.tradeLink !== 'all' || !currentFilters.surf || currentFilters.rod !== 'super';
     const msg = hasActiveFilters ? 'No catch/evolution actions match your active filters.' : 'No catch/evolution actions in this section.';
     checklistGrid.innerHTML = `<div class="no-items">${msg}</div>`;
     return;
@@ -337,171 +721,61 @@ function renderChecklistCards() {
 
   filteredItems.forEach((item, index) => {
     const card = document.createElement('div');
-    card.setAttribute('data-requirement-id', item.requirement_id);
+    card.setAttribute('data-pokemon-id', item.pokemon_id);
 
     const stageClass = item.evolution_stage === 2 ? 'evo-stage-2' : (item.evolution_stage >= 3 ? 'evo-stage-3' : '');
     card.className = `checklist-card ${item.completed ? 'checked' : ''} ${stageClass}`;
     card.style.animationDelay = `${index * 0.04}s`;
+    
     const typesHtml = [item.pokemon_type1, item.pokemon_type2]
       .filter(t => t !== null && t !== '')
       .map(t => `<span class="badge type-${t.toLowerCase()}">${t}</span>`).join(' ');
-    const paddedDex = String(item.pokemon_id).padStart(3, '0');
-    const actionClass = `action-${item.action_type.toLowerCase()}`;
-    const notesHtml = item.notes ? `<div class="notes-row">${item.notes}</div>` : '';
-    const caughtGames = item.caught_games ? item.caught_games.split(',') : [];
-    const gamesList = [
-      { id: 'red', code: 'R', class: 'active-red' },
-      { id: 'blue', code: 'B', class: 'active-blue' },
-      { id: 'yellow', code: 'Y', class: 'active-yellow', groupEnd: true },
-      { id: 'gold', code: 'G', class: 'active-gold' },
-      { id: 'silver', code: 'S', class: 'active-silver' },
-      { id: 'crystal', code: 'C', class: 'active-crystal', groupEnd: true },
-      { id: 'ruby', code: 'R', class: 'active-ruby' },
-      { id: 'sapphire', code: 'S', class: 'active-sapphire' },
-      { id: 'emerald', code: 'E', class: 'active-emerald', groupEnd: true },
-      { id: 'firered', code: 'FR', class: 'active-firered' },
-      { id: 'leafgreen', code: 'LG', class: 'active-leafgreen' }
-    ];
-    const ownershipHtml = gamesList.map(g => {
-  const isCaught = caughtGames.includes(g.id) || caughtGames.includes(g.code);
-  const groupEndClass = g.groupEnd ? 'group-end' : '';
-  return `<span class="game-badge ${isCaught ? g.class : 'placeholder'} ${groupEndClass}" title="Caught in ${g.id}">${g.code}</span>`;
-}).join('');
-    const isCaughtInCurrent = caughtGames.includes(state.selectedGameId);
-    let tradeButtonHtml = '';
-    if (isCaughtInCurrent) {
-      const otherGames = gamesList.filter(g => g.id !== state.selectedGameId);
-      const optionsHtml = otherGames.map(g => `\n        <button class="trade-option ${g.id}-opt" data-to="${g.id}">Trade to ${g.id.charAt(0).toUpperCase() + g.id.slice(1)}</button>`).join('');
-      tradeButtonHtml = `\n        <div class="trade-trigger-container">\n          <button class="trade-btn">⇄ Trade</button>\n          <div class="trade-menu">${optionsHtml}</div>\n        </div>`;
-    }
-    const isCarryOver = item.section_id !== state.selectedSectionId;
-    const carryOverHtml = isCarryOver ? `<span class="carry-over-badge">↩ Carry Over</span>` : '';
-    card.innerHTML = `\n      <div class="checkbox-container"><div class="custom-checkbox"></div></div>\n      <div class="card-content">\n        <div class="pokemon-header"><span class="dex-number">#${paddedDex}</span><span class="pokemon-name">${item.pokemon_name}</span>${carryOverHtml}<div class="pokemon-types">${typesHtml}</div></div>\n        <div class="location-row"><span class="action-badge ${actionClass}">${item.action_type}</span><span class="location-text">${item.location_details}</span></div>\n        ${notesHtml}\n        <div class="card-footer-row"><div class="game-ownership-icons">${ownershipHtml}</div>${tradeButtonHtml}</div>\n      </div>`;
-    card.addEventListener('click', async (e) => {
-      if (e.target.closest('.card-footer-row')) return;
-      e.stopPropagation();
-      await toggleItemCompletion(item.requirement_id);
-    });
-    if (isCaughtInCurrent) {
-      const tradeBtn = card.querySelector('.trade-btn');
-      const tradeMenu = card.querySelector('.trade-menu');
-      tradeBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        document.querySelectorAll('.trade-menu.show').forEach(menu => {
-          if (menu !== tradeMenu) menu.classList.remove('show');
-        });
-        tradeMenu.classList.toggle('show');
-      });
-      const options = card.querySelectorAll('.trade-option');
-      options.forEach(opt => {
-        opt.addEventListener('click', async (e) => {
-          e.stopPropagation();
-          tradeMenu.classList.remove('show');
-          await openTradeModal(item.pokemon_id, item.pokemon_name, state.selectedGameId, opt.dataset.to);
-        });
-      });
-    }
-    checklistGrid.appendChild(card);
-  });
-  checklistGrid.scrollTop = previousScroll;
-}
-
-  
-  const currentSection = state.sections.find(s => s.id === state.selectedSectionId);
-  const currentOrderIndex = currentSection ? currentSection.order_index : 1;
-
-  let filteredItems = state.checklistItems.filter(item => {
-    // 1. Current section items
-    if (item.section_id === state.selectedSectionId) {
-      return true;
-    }
-    // 2. Uncompleted evolutions from previous sections (carry over)
-    const itemSection = state.sections.find(s => s.id === item.section_id);
-    if (itemSection && itemSection.order_index < currentOrderIndex) {
-      return item.completed === 0 && item.action_type === 'EVOLVE';
-    }
-    return false;
-  });
-
-  // Apply Hide Caught filter
-  if (state.filters.hideCaught) {
-    filteredItems = filteredItems.filter(item => item.completed === 0);
-  }
-
-  // Apply Only Carry-Over filter
-  if (state.filters.onlyCarryover) {
-    filteredItems = filteredItems.filter(item => item.section_id !== state.selectedSectionId);
-  }
-
-  // Apply Hide Carry-Over filter
-  if (state.filters.hideCarryover) {
-    filteredItems = filteredItems.filter(item => item.section_id === state.selectedSectionId);
-  }
-
-  if (filteredItems.length === 0) {
-    const hasActiveFilters = state.filters.hideCaught || state.filters.onlyCarryover || state.filters.hideCarryover;
-    const msg = hasActiveFilters 
-      ? 'No catch/evolution actions match your active filters.' 
-      : 'No catch/evolution actions in this section.';
-    checklistGrid.innerHTML = `<div class="no-items">${msg}</div>`;
-// return; // disabled stray return
-  }
-
-  // Check if all items in active section are completed
-  const allCompleted = filteredItems.every(item => item.completed === 1);
-  if (allCompleted) {
-    activeSectionDetails.classList.add('section-complete');
-  } else {
-    activeSectionDetails.classList.remove('section-complete');
-  }
-
-  filteredItems.forEach((item, index) => {
-    const card = document.createElement('div');
-    const stageClass = item.evolution_stage === 2 ? 'evo-stage-2' : (item.evolution_stage >= 3 ? 'evo-stage-3' : '');
-    card.className = `checklist-card ${item.completed ? 'checked' : ''} ${stageClass}`;
-    // Delay animation slightly per card for a staggered entrance effect
-    card.style.animationDelay = `${index * 0.04}s`;
     
-    // Create badges for types
-    const typesHtml = [item.pokemon_type1, item.pokemon_type2]
-      .filter(t => t !== null && t !== '')
-      .map(t => `<span class="badge type-${t.toLowerCase()}">${t}</span>`)
-      .join(' ');
-
-    // Pad pokedex number
     const paddedDex = String(item.pokemon_id).padStart(3, '0');
-
-    // Create Action Badge Class
-    const actionClass = `action-${item.action_type.toLowerCase()}`;
-
-    // Notes HTML
-    const notesHtml = item.notes ? `<div class="notes-row">${item.notes}</div>` : '';
-
-    // Parse caught games
-    const caughtGames = item.caught_games ? item.caught_games.split(',') : [];
-
-    // Render game badges
-    const gamesList = [
-      { id: 'red', code: 'R', class: 'active-red' },
-      { id: 'blue', code: 'B', class: 'active-blue' },
-      { id: 'yellow', code: 'Y', class: 'active-yellow', groupEnd: true },
-      { id: 'gold', code: 'G', class: 'active-gold' },
-      { id: 'silver', code: 'S', class: 'active-silver' },
-      { id: 'crystal', code: 'C', class: 'active-crystal', groupEnd: true },
-      { id: 'ruby', code: 'R', class: 'active-ruby' },
-      { id: 'sapphire', code: 'S', class: 'active-sapphire' },
-      { id: 'emerald', code: 'E', class: 'active-emerald', groupEnd: true },
-      { id: 'firered', code: 'FR', class: 'active-firered' },
-      { id: 'leafgreen', code: 'LG', class: 'active-leafgreen' }
-    ];
-
-    const ownershipHtml = gamesList.map(g => {
-      const isCaught = caughtGames.includes(g.id);
-      const groupEndClass = g.groupEnd ? 'group-end' : '';
-      return `<span class="game-badge ${isCaught ? g.class : ''} ${groupEndClass}" title="Caught in ${g.id}">${g.code}</span>`;
+    
+    // Render the list of encounter requirements
+    const rowsHtml = item.requirements.map(req => {
+      const actionIconHtml = getActionIconHtml(req.action_type, req.location_details, req.notes);
+      const notesHtml = req.notes ? `<div class="notes-row">${req.notes}</div>` : '';
+      return `
+        <div class="checklist-encounter-item ${req.completed ? 'checked' : ''}" data-requirement-id="${req.requirement_id}">
+          <div class="checkbox-container">
+            <div class="custom-checkbox"></div>
+          </div>
+          <div class="encounter-info">
+            <div class="location-row">
+              ${actionIconHtml}
+              <span class="location-text">${req.location_details}</span>
+            </div>
+            ${notesHtml}
+          </div>
+        </div>
+      `;
     }).join('');
 
-    // Generate trade options if caught in current game
+    const caughtGames = item.caught_games ? item.caught_games.split(',') : [];
+    const obtainableGames = item.obtainable_games ? item.obtainable_games.split(',') : [];
+    const gamesList = [
+      { id: 'red', code: 'R', class: 'active-red' },
+      { id: 'blue', code: 'B', class: 'active-blue' },
+      { id: 'yellow', code: 'Y', class: 'active-yellow', groupEnd: true },
+      { id: 'gold', code: 'G', class: 'active-gold' },
+      { id: 'silver', code: 'S', class: 'active-silver' },
+      { id: 'crystal', code: 'C', class: 'active-crystal', groupEnd: true },
+      { id: 'ruby', code: 'R', class: 'active-ruby' },
+      { id: 'sapphire', code: 'S', class: 'active-sapphire' },
+      { id: 'emerald', code: 'E', class: 'active-emerald', groupEnd: true },
+      { id: 'firered', code: 'FR', class: 'active-firered' },
+      { id: 'leafgreen', code: 'LG', class: 'active-leafgreen' }
+    ];
+    const ownershipHtml = gamesList.map(g => {
+      const isCaught = caughtGames.includes(g.id) || caughtGames.includes(g.code);
+      const isObtainable = obtainableGames.includes(g.id);
+      const unobtainableClass = (!isCaught && !isObtainable) ? 'unobtainable' : 'placeholder';
+      const groupEndClass = g.groupEnd ? 'group-end' : '';
+      return `<span class="game-badge ${isCaught ? g.class : unobtainableClass} ${groupEndClass}" title="${isCaught ? 'Caught' : (isObtainable ? 'Obtainable' : 'Unobtainable')} in ${g.id.charAt(0).toUpperCase() + g.id.slice(1)}">${g.code}</span>`;
+    }).join('');
+    
     const isCaughtInCurrent = caughtGames.includes(state.selectedGameId);
     let tradeButtonHtml = '';
     if (isCaughtInCurrent) {
@@ -509,24 +783,21 @@ function renderChecklistCards() {
       const optionsHtml = otherGames.map(g => `
         <button class="trade-option ${g.id}-opt" data-to="${g.id}">Trade to ${g.id.charAt(0).toUpperCase() + g.id.slice(1)}</button>
       `).join('');
-
       tradeButtonHtml = `
         <div class="trade-trigger-container">
           <button class="trade-btn">⇄ Trade</button>
           <div class="trade-menu">
             ${optionsHtml}
+            <button class="trade-option release-option" style="color: #ff5555; border-top: 1px solid rgba(255,255,255,0.08);" data-to="release">Release (Mark NOT Caught)</button>
           </div>
         </div>
       `;
     }
-
+    
     const isCarryOver = item.section_id !== state.selectedSectionId;
     const carryOverHtml = isCarryOver ? `<span class="carry-over-badge">↩ Carry Over</span>` : '';
-
+    
     card.innerHTML = `
-      <div class="checkbox-container">
-        <div class="custom-checkbox"></div>
-      </div>
       <div class="card-content">
         <div class="pokemon-header">
           <span class="dex-number">#${paddedDex}</span>
@@ -534,130 +805,323 @@ function renderChecklistCards() {
           ${carryOverHtml}
           <div class="pokemon-types">${typesHtml}</div>
         </div>
-        <div class="location-row">
-          <span class="action-badge ${actionClass}">${item.action_type}</span>
-          <span class="location-text">${item.location_details}</span>
+        <div class="checklist-encounters-list">
+          ${rowsHtml}
         </div>
-        ${notesHtml}
         <div class="card-footer-row">
-          <div class="game-ownership-icons">
-            ${ownershipHtml}
-          </div>
+          <div class="game-ownership-icons">${ownershipHtml}</div>
           ${tradeButtonHtml}
         </div>
       </div>
     `;
 
-    // Click on checkbox or card itself toggles completion (ignoring footer interactions)
-    card.addEventListener('click', async (e) => {
-      if (e.target.closest('.card-footer-row')) {
-        return;
-      }
-      e.stopPropagation();
-      await toggleItemCompletion(item.requirement_id);
+    // Click listener for checking/unchecking individual encounters
+    card.querySelectorAll('.checklist-encounter-item').forEach(encItem => {
+      encItem.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const reqId = parseInt(encItem.dataset.requirementId);
+        await toggleItemCompletion(reqId);
+      });
     });
 
-    // Set up trade dropdown toggling
     if (isCaughtInCurrent) {
       const tradeBtn = card.querySelector('.trade-btn');
       const tradeMenu = card.querySelector('.trade-menu');
-      
-      tradeBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        // Close all other open trade menus first
-        document.querySelectorAll('.trade-menu.show').forEach(menu => {
-          if (menu !== tradeMenu) menu.classList.remove('show');
-        });
-        tradeMenu.classList.toggle('show');
-      });
-
-      // Handle trade options
-      const options = card.querySelectorAll('.trade-option');
-      options.forEach(opt => {
-        opt.addEventListener('click', async (e) => {
+      if (tradeBtn && tradeMenu) {
+        tradeBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          tradeMenu.classList.remove('show');
-          const toGame = opt.dataset.to;
-          await openTradeModal(item.pokemon_id, item.pokemon_name, state.selectedGameId, toGame);
+          document.querySelectorAll('.trade-menu.show').forEach(menu => {
+            if (menu !== tradeMenu) menu.classList.remove('show');
+          });
+          tradeMenu.classList.toggle('show');
         });
-      });
+        const options = card.querySelectorAll('.trade-option');
+        options.forEach(opt => {
+          opt.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            tradeMenu.classList.remove('show');
+            if (opt.dataset.to === 'release') {
+              await releasePokemon(item.pokemon_id, item.pokemon_name);
+            } else {
+              await openTradeModal(item.pokemon_id, item.pokemon_name, state.selectedGameId, opt.dataset.to);
+            }
+          });
+        });
+      }
     }
-
     checklistGrid.appendChild(card);
   });
+  checklistGrid.scrollTop = previousScroll;
+}
 
+// Update a card's DOM state without reloading the list
+function updateCardDOM(requirementId, pokemonId, isCompleted, caughtGames) {
+  // Update regular checklist card
+  const cards = document.querySelectorAll(`.checklist-card[data-pokemon-id="${pokemonId}"]`);
+  cards.forEach(card => {
+    const isCaughtInCurrent = caughtGames.includes(state.selectedGameId);
+    if (isCaughtInCurrent) {
+      card.classList.add('checked');
+    } else {
+      card.classList.remove('checked');
+    }
+
+    // Update the specific encounter item's checked class (works for both main and search cards)
+    const encItem = card.querySelector(`.checklist-encounter-item[data-requirement-id="${requirementId}"], .search-encounter-item[data-requirement-id="${requirementId}"]`);
+    if (encItem) {
+      if (isCompleted) {
+        encItem.classList.add('checked');
+      } else {
+        encItem.classList.remove('checked');
+      }
+    }
+
+    // Update game ownership badges dynamically
+    const ownershipContainer = card.querySelector('.game-ownership-icons');
+    if (ownershipContainer) {
+      const gamesList = [
+        { id: 'red', code: 'R', class: 'active-red' },
+        { id: 'blue', code: 'B', class: 'active-blue' },
+        { id: 'yellow', code: 'Y', class: 'active-yellow', groupEnd: true },
+        { id: 'gold', code: 'G', class: 'active-gold' },
+        { id: 'silver', code: 'S', class: 'active-silver' },
+        { id: 'crystal', code: 'C', class: 'active-crystal', groupEnd: true },
+        { id: 'ruby', code: 'R', class: 'active-ruby' },
+        { id: 'sapphire', code: 'S', class: 'active-sapphire' },
+        { id: 'emerald', code: 'E', class: 'active-emerald', groupEnd: true },
+        { id: 'firered', code: 'FR', class: 'active-firered' },
+        { id: 'leafgreen', code: 'LG', class: 'active-leafgreen' }
+      ];
+      const ownershipHtml = gamesList.map(g => {
+        const isOwned = caughtGames.includes(g.id);
+        const isCurrent = g.id === state.selectedGameId;
+        const highlightClass = isOwned ? g.class : '';
+        const borderClass = isCurrent ? 'current-game-badge' : '';
+        return `<span class="badge ${highlightClass} ${borderClass}">${g.code}</span>`;
+      }).join('');
+      ownershipContainer.innerHTML = ownershipHtml;
+    }
+
+    // Update trade button dynamically
+    const footerRow = card.querySelector('.card-footer-row');
+    if (footerRow) {
+      const existingTrade = footerRow.querySelector('.trade-trigger-container');
+      if (existingTrade) {
+        existingTrade.remove();
+      }
+
+      if (isCaughtInCurrent) {
+        const gamesList = [
+          { id: 'red', code: 'R', class: 'active-red' },
+          { id: 'blue', code: 'B', class: 'active-blue' },
+          { id: 'yellow', code: 'Y', class: 'active-yellow', groupEnd: true },
+          { id: 'gold', code: 'G', class: 'active-gold' },
+          { id: 'silver', code: 'S', class: 'active-silver' },
+          { id: 'crystal', code: 'C', class: 'active-crystal', groupEnd: true },
+          { id: 'ruby', code: 'R', class: 'active-ruby' },
+          { id: 'sapphire', code: 'S', class: 'active-sapphire' },
+          { id: 'emerald', code: 'E', class: 'active-emerald', groupEnd: true },
+          { id: 'firered', code: 'FR', class: 'active-firered' },
+          { id: 'leafgreen', code: 'LG', class: 'active-leafgreen' }
+        ];
+        const otherGames = gamesList.filter(g => g.id !== state.selectedGameId);
+        const optionsHtml = otherGames.map(g => `
+          <button class="trade-option ${g.id}-opt" data-to="${g.id}">Trade to ${g.id.charAt(0).toUpperCase() + g.id.slice(1)}</button>
+        `).join('');
+
+        const tradeContainer = document.createElement('div');
+        tradeContainer.className = 'trade-trigger-container';
+        tradeContainer.innerHTML = `
+          <button class="trade-btn">⇄ Trade</button>
+          <div class="trade-menu">
+            ${optionsHtml}
+            <button class="trade-option release-option" style="color: #ff5555; border-top: 1px solid rgba(255,255,255,0.08);" data-to="release">Release (Mark NOT Caught)</button>
+          </div>
+        `;
+        footerRow.appendChild(tradeContainer);
+
+        const tradeBtn = tradeContainer.querySelector('.trade-btn');
+        const tradeMenu = tradeContainer.querySelector('.trade-menu');
+        
+        if (tradeBtn && tradeMenu) {
+          tradeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.querySelectorAll('.trade-menu.show').forEach(menu => {
+              if (menu !== tradeMenu) menu.classList.remove('show');
+            });
+            tradeMenu.classList.toggle('show');
+          });
+
+          const options = tradeContainer.querySelectorAll('.trade-option');
+          options.forEach(opt => {
+            opt.addEventListener('click', async (e) => {
+              e.stopPropagation();
+              tradeMenu.classList.remove('show');
+              const toGame = opt.dataset.to;
+              const cardName = card.querySelector('.pokemon-name').textContent;
+              if (toGame === 'release') {
+                await releasePokemon(pokemonId, cardName);
+              } else {
+                await openTradeModal(pokemonId, cardName, state.selectedGameId, toGame);
+              }
+            });
+          });
+        }
+      }
+    }
+
+    // If Hide Caught filter is active, fade out and remove card from DOM
+    if (state.filters.hideCaught && isCaughtInCurrent) {
+      card.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+      card.style.opacity = '0';
+      card.style.transform = 'scale(0.95)';
+      setTimeout(() => {
+        card.remove();
+        if (checklistGrid.querySelectorAll('.checklist-card').length === 0) {
+          const msg = 'No catch/evolution actions match your active filters.';
+          checklistGrid.innerHTML = `<div class="no-items">${msg}</div>`;
+        }
+      }, 250);
+    }
+  });
+
+  // Update search encounter item in the global search view
+  const searchItems = document.querySelectorAll(`.search-encounter-item[data-requirement-id="${requirementId}"]`);
+  searchItems.forEach(searchItem => {
+    if (isCompleted) {
+      searchItem.classList.add('checked');
+    } else {
+      searchItem.classList.remove('checked');
+    }
+  });
+
+  // Update the game ownership badges (the R/B/Y/G/S/C badges) for all instances (both checklist and search view) of this pokemon
+  const gamesList = [
+    { id: 'red', code: 'R', class: 'active-red' },
+    { id: 'blue', code: 'B', class: 'active-blue' },
+    { id: 'yellow', code: 'Y', class: 'active-yellow', groupEnd: true },
+    { id: 'gold', code: 'G', class: 'active-gold' },
+    { id: 'silver', code: 'S', class: 'active-silver' },
+    { id: 'crystal', code: 'C', class: 'active-crystal', groupEnd: true },
+    { id: 'ruby', code: 'R', class: 'active-ruby' },
+    { id: 'sapphire', code: 'S', class: 'active-sapphire' },
+    { id: 'emerald', code: 'E', class: 'active-emerald', groupEnd: true },
+    { id: 'firered', code: 'FR', class: 'active-firered' },
+    { id: 'leafgreen', code: 'LG', class: 'active-leafgreen' }
+  ];
+
+  const item = state.checklistItems.find(i => i.pokemon_id === pokemonId) || state.searchResults.find(i => i.pokemon_id === pokemonId);
+  const obtainableGames = (item && item.obtainable_games)
+    ? (Array.isArray(item.obtainable_games) ? item.obtainable_games : item.obtainable_games.split(','))
+    : [];
+
+  // Checklist cards
+  const allChecklistCards = document.querySelectorAll(`.checklist-card[data-pokemon-id="${pokemonId}"]`);
+  allChecklistCards.forEach(pCard => {
+    const badgeContainer = pCard.querySelector('.game-ownership-icons');
+    if (badgeContainer) {
+      badgeContainer.innerHTML = gamesList.map(g => {
+        const isCaught = caughtGames.includes(g.id);
+        const isObtainable = obtainableGames.includes(g.id);
+        const unobtainableClass = (!isCaught && !isObtainable) ? 'unobtainable' : 'placeholder';
+        const groupEndClass = g.groupEnd ? 'group-end' : '';
+        return `<span class="game-badge ${isCaught ? g.class : unobtainableClass} ${groupEndClass}" title="${isCaught ? 'Caught' : (isObtainable ? 'Obtainable' : 'Unobtainable')} in ${g.id.charAt(0).toUpperCase() + g.id.slice(1)}">${g.code}</span>`;
+      }).join('');
+    }
+  });
+
+  // Search result cards
+  const allSearchCards = document.querySelectorAll(`.search-card[data-pokemon-id="${pokemonId}"]`);
+  allSearchCards.forEach(sCard => {
+    const badgeContainer = sCard.querySelector('.game-ownership-icons');
+    if (badgeContainer) {
+      badgeContainer.innerHTML = gamesList.map(g => {
+        const isCaught = caughtGames.includes(g.id);
+        const isObtainable = obtainableGames.includes(g.id);
+        const unobtainableClass = (!isCaught && !isObtainable) ? 'unobtainable' : 'placeholder';
+        const groupEndClass = g.groupEnd ? 'group-end' : '';
+        return `<span class="game-badge ${isCaught ? g.class : unobtainableClass} ${groupEndClass}" title="${isCaught ? 'Caught' : (isObtainable ? 'Obtainable' : 'Unobtainable')} in ${g.id.charAt(0).toUpperCase() + g.id.slice(1)}">${g.code}</span>`;
+      }).join('');
+    }
+  });
+}
 
 // Toggle status of a checklist item (completed <-> incomplete)
 async function toggleItemCompletion(requirementId) {
-  // Find item in checklistItems (active game)
-  const itemIndex = state.checklistItems.findIndex(i => i.requirement_id === requirementId);
-  
-  // Find item in search results (global search)
-  let searchReq = null;
-  let searchPkmn = null;
-  for (const pkmn of state.searchResults) {
+  // Find pokemon and requirement in checklistItems (active game)
+  let foundPkmn = null;
+  let foundReq = null;
+  for (const pkmn of state.checklistItems) {
     const req = pkmn.requirements.find(r => r.requirement_id === requirementId);
     if (req) {
-      searchReq = req;
-      searchPkmn = pkmn;
+      foundPkmn = pkmn;
+      foundReq = req;
       break;
     }
   }
 
-  if (itemIndex === -1 && !searchReq) return;
+  // Find in search results (global search)
+  let searchPkmn = null;
+  let searchReq = null;
+  for (const pkmn of state.searchResults) {
+    const req = pkmn.requirements.find(r => r.requirement_id === requirementId);
+    if (req) {
+      searchPkmn = pkmn;
+      searchReq = req;
+      break;
+    }
+  }
 
-  // Determine current status
-  const currentStatus = itemIndex !== -1 
-    ? state.checklistItems[itemIndex].completed 
-    : searchReq.completed;
-  
+  if (!foundReq && !searchReq) return;
+
+  const currentStatus = foundReq ? foundReq.completed : searchReq.completed;
   const newStatus = currentStatus === 1 ? 0 : 1;
 
   // Optimistic UI updates
-  if (itemIndex !== -1) {
-    state.checklistItems[itemIndex].completed = newStatus;
-  }
-  if (searchReq) {
-    searchReq.completed = newStatus;
-  }
+  if (foundReq) foundReq.completed = newStatus;
+  if (searchReq) searchReq.completed = newStatus;
 
-  // Get pokemonId
-  const pokemonId = itemIndex !== -1 
-    ? state.checklistItems[itemIndex].pokemon_id 
-    : searchPkmn.pokemon_id;
+  const pokemonId = foundPkmn ? foundPkmn.pokemon_id : searchPkmn.pokemon_id;
+  const reqGameId = foundPkmn ? state.selectedGameId : searchReq.game_id;
 
-  // Optimistic caught_games update (add/remove the game where the requirement belongs)
-  const reqGameId = itemIndex !== -1
-    ? state.selectedGameId
-    : searchReq.game_id;
-
-  const currentCaughtGames = itemIndex !== -1
-    ? (state.checklistItems[itemIndex].caught_games ? state.checklistItems[itemIndex].caught_games.split(',') : [])
+  const currentCaughtGames = foundPkmn
+    ? (foundPkmn.caught_games ? foundPkmn.caught_games.split(',') : [])
     : (searchPkmn.caught_games ? searchPkmn.caught_games : []);
+
+  // Update optimistic completed status of the pokemon itself for this game
+  if (foundPkmn) {
+    foundPkmn.completed = foundPkmn.requirements.some(r => r.completed === 1) ? 1 : 0;
+  }
 
   let newCaughtGames;
   if (newStatus === 1) {
     newCaughtGames = [...new Set([...currentCaughtGames, reqGameId])];
   } else {
-    newCaughtGames = currentCaughtGames.filter(g => g !== reqGameId);
+    // If unchecking, check if any other requirement of this pokemon in this game is still completed
+    const hasOtherCompleted = foundPkmn
+      ? foundPkmn.requirements.some(r => r.requirement_id !== requirementId && r.completed === 1)
+      : searchPkmn.requirements.some(r => r.game_id === reqGameId && r.requirement_id !== requirementId && r.completed === 1);
+    
+    if (hasOtherCompleted) {
+      newCaughtGames = [...currentCaughtGames];
+    } else {
+      newCaughtGames = currentCaughtGames.filter(g => g !== reqGameId);
+    }
   }
 
-  // Sync caught_games to all instances of this pokemon
+  // Sync caught_games and completed to all instances in state
   state.checklistItems.forEach(item => {
     if (item.pokemon_id === pokemonId) {
       item.caught_games = newCaughtGames.join(',');
+      item.completed = item.requirements.some(r => r.completed === 1) ? 1 : 0;
     }
   });
   if (searchPkmn) {
     searchPkmn.caught_games = newCaughtGames;
   }
 
-  // Re-render UI
-  if (state.searchQuery) {
-    renderSearchResults();
-  } else {
-    renderChecklistCards();
-  }
+  // Update DOM locally (no full list reload!)
+  updateCardDOM(requirementId, pokemonId, newStatus === 1, newCaughtGames);
   calculateAndRenderProgress();
   renderSectionPills();
 
@@ -674,47 +1138,40 @@ async function toggleItemCompletion(requirementId) {
       state.checklistItems.forEach(item => {
         if (item.pokemon_id === pokemonId) {
           item.caught_games = result.caught_games.join(',');
+          item.completed = item.requirements.some(r => r.completed === 1) ? 1 : 0;
         }
       });
       if (searchPkmn) {
         searchPkmn.caught_games = result.caught_games;
       }
       
-      // Re-render UI with authoritative data
-      if (state.searchQuery) {
-        renderSearchResults();
-      } else {
-        renderChecklistCards();
-      }
+      // Update DOM with authoritative data
+      updateCardDOM(requirementId, pokemonId, newStatus === 1, result.caught_games);
     }
   } catch (err) {
     console.error('Failed to sync progress with database, reverting:', err);
     // Revert state on error
-    if (itemIndex !== -1) {
-      state.checklistItems[itemIndex].completed = currentStatus;
-    }
-    if (searchReq) {
-      searchReq.completed = currentStatus;
+    if (foundReq) foundReq.completed = currentStatus;
+    if (searchReq) searchReq.completed = currentStatus;
+    if (foundPkmn) {
+      foundPkmn.completed = foundPkmn.requirements.some(r => r.completed === 1) ? 1 : 0;
     }
     state.checklistItems.forEach(item => {
       if (item.pokemon_id === pokemonId) {
         item.caught_games = currentCaughtGames.join(',');
+        item.completed = item.requirements.some(r => r.completed === 1) ? 1 : 0;
       }
     });
     if (searchPkmn) {
       searchPkmn.caught_games = currentCaughtGames;
     }
     
-    if (state.searchQuery) {
-      renderSearchResults();
-    } else {
-      renderChecklistCards();
-    }
+    // Revert DOM status
+    updateCardDOM(requirementId, pokemonId, currentStatus === 1, currentCaughtGames);
     calculateAndRenderProgress();
     renderSectionPills();
   }
 }
-
 // Perform global search
 async function performSearch(queryText) {
   state.searchQuery = queryText;
@@ -772,6 +1229,7 @@ function renderSearchResults() {
   state.searchResults.forEach((item, index) => {
     const card = document.createElement('div');
     card.className = 'checklist-card';
+    card.setAttribute('data-pokemon-id', item.pokemon_id);
     card.style.animationDelay = `${index * 0.04}s`;
 
     // Types html
@@ -798,17 +1256,20 @@ function renderSearchResults() {
     ];
 
     const caughtGames = item.caught_games ? item.caught_games : [];
+    const obtainableGames = item.obtainable_games ? item.obtainable_games : [];
     const ownershipHtml = gamesList.map(g => {
       const isCaught = caughtGames.includes(g.id);
+      const isObtainable = obtainableGames.includes(g.id);
+      const unobtainableClass = (!isCaught && !isObtainable) ? 'unobtainable' : 'placeholder';
       const groupEndClass = g.groupEnd ? 'group-end' : '';
-      return `<span class="game-badge ${isCaught ? g.class : 'placeholder'} ${groupEndClass}" title="Caught in ${g.id}">${g.code}</span>`;
+      return `<span class="game-badge ${isCaught ? g.class : unobtainableClass} ${groupEndClass}" title="${isCaught ? 'Caught' : (isObtainable ? 'Obtainable' : 'Unobtainable')} in ${g.id.charAt(0).toUpperCase() + g.id.slice(1)}">${g.code}</span>`;
     }).join('');
 
     // Encounters html
     let encountersHtml = '';
     if (item.requirements && item.requirements.length > 0) {
       const rowsHtml = item.requirements.map(req => {
-        const actionClass = `action-${req.action_type.toLowerCase()}`;
+        const actionIconHtml = getActionIconHtml(req.action_type, req.location_details, req.notes);
         const notesHtml = req.notes ? `<div class="encounter-notes">${req.notes}</div>` : '';
         return `
           <div class="search-encounter-item ${req.completed ? 'checked' : ''}" data-requirement-id="${req.requirement_id}">
@@ -820,7 +1281,7 @@ function renderSearchResults() {
                 <span class="game-tag tag-${req.game_id}">${req.game_name}</span>
                 <span class="location-text">${req.location_details}</span>
               </div>
-              <span class="action-badge ${actionClass} encounter-action">${req.action_type}</span>
+              ${actionIconHtml}
               ${notesHtml}
             </div>
           </div>
@@ -1017,6 +1478,62 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+async function releasePokemon(pokemonId, pokemonName) {
+  if (!confirm(`Are you sure you want to release ${pokemonName} and mark it as NOT caught in the current game?`)) {
+    return;
+  }
+  try {
+    const response = await fetch('/api/release_pokemon', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        pokemon_id: pokemonId,
+        game_id: state.selectedGameId
+      })
+    });
+    
+    if (!response.ok) throw new Error('Release request failed');
+    
+    const result = await response.json();
+    if (result.success) {
+      // Update in-memory state
+      state.checklistItems.forEach(item => {
+        if (item.pokemon_id === pokemonId) {
+          item.caught_games = result.caught_games.join(',');
+          item.completed = 0;
+          item.requirements.forEach(r => {
+            r.completed = 0;
+          });
+        }
+      });
+      
+      // Update search results if active
+      const searchPkmn = state.searchResults.find(p => p.pokemon_id === pokemonId);
+      if (searchPkmn) {
+        searchPkmn.caught_games = result.caught_games;
+        searchPkmn.requirements.forEach(r => {
+          if (r.game_id === state.selectedGameId) {
+            r.completed = 0;
+          }
+        });
+      }
+      
+      // Re-render
+      renderChecklistCards();
+      calculateAndRenderProgress();
+      renderSectionPills();
+      
+      const activePill = sectionNav.querySelector(`.nav-pill[data-id="${state.selectedSectionId}"]`);
+      if (activePill) activePill.classList.add('active');
+    }
+  } catch (err) {
+    console.error('Failed to release Pokémon:', err);
+    alert('Failed to release Pokémon.');
+  }
+}
 
 // Global click handler to dismiss open trade dropdown menus
 document.addEventListener('click', () => {
