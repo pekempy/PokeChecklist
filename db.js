@@ -1,0 +1,289 @@
+import sqlite3 from 'sqlite3';
+import { fileURLToPath } from 'url';
+import path from 'path';
+import fs from 'fs';
+import { resolveRequirement } from './game_data.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+let dbPath = path.join(__dirname, 'pokemon_checklist.db');
+let db = new sqlite3.Database(dbPath);
+
+const pokemonMaster = JSON.parse(
+  fs.readFileSync(path.join(__dirname, 'pokemon_master_386.json'), 'utf8')
+);
+
+// Map of pokemon by ID for quick resolver lookup
+const pokemonMap = {};
+pokemonMaster.forEach(p => {
+  pokemonMap[p.id] = p;
+});
+
+export function setDatabasePath(newPath) {
+  // Close old database connection if open
+  if (db) {
+    db.close();
+  }
+  dbPath = newPath;
+  db = new sqlite3.Database(dbPath);
+}
+
+export function getDbPath() {
+  return dbPath;
+}
+
+export function getDb() {
+  return db;
+}
+
+export function query(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows);
+    });
+  });
+}
+
+export function run(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.run(sql, params, function(err) {
+      if (err) reject(err);
+      else resolve(this);
+    });
+  });
+}
+
+export function serialize(callback) {
+  return new Promise((resolve, reject) => {
+    db.serialize(() => {
+      try {
+        callback();
+        resolve();
+      } catch (err) {
+        reject(err);
+      }
+    });
+  });
+}
+
+export async function initDb() {
+  // Create tables
+  await run(`
+    CREATE TABLE IF NOT EXISTS games (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      generation INTEGER NOT NULL,
+      region TEXT NOT NULL
+    )
+  `);
+
+  await run(`
+    CREATE TABLE IF NOT EXISTS sections (
+      id INTEGER PRIMARY KEY,
+      game_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      description TEXT,
+      order_index INTEGER NOT NULL,
+      FOREIGN KEY (game_id) REFERENCES games (id)
+    )
+  `);
+
+  await run(`
+    CREATE TABLE IF NOT EXISTS pokemon (
+      id INTEGER PRIMARY KEY,
+      name TEXT NOT NULL,
+      type1 TEXT NOT NULL,
+      type2 TEXT
+    )
+  `);
+
+  await run(`
+    CREATE TABLE IF NOT EXISTS requirements (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      game_id TEXT NOT NULL,
+      section_id INTEGER NOT NULL,
+      pokemon_id INTEGER NOT NULL,
+      action_type TEXT NOT NULL,
+      location_details TEXT NOT NULL,
+      notes TEXT,
+      FOREIGN KEY (game_id) REFERENCES games (id),
+      FOREIGN KEY (section_id) REFERENCES sections (id),
+      FOREIGN KEY (pokemon_id) REFERENCES pokemon (id)
+    )
+  `);
+
+  await run(`
+    CREATE TABLE IF NOT EXISTS progress (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      requirement_id INTEGER UNIQUE NOT NULL,
+      completed INTEGER DEFAULT 0,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (requirement_id) REFERENCES requirements (id) ON DELETE CASCADE
+    )
+  `);
+
+  await run(`
+    CREATE TABLE IF NOT EXISTS caught_pokemon (
+      game_id TEXT NOT NULL,
+      pokemon_id INTEGER NOT NULL,
+      PRIMARY KEY (game_id, pokemon_id),
+      FOREIGN KEY (game_id) REFERENCES games (id),
+      FOREIGN KEY (pokemon_id) REFERENCES pokemon (id)
+    )
+  `);
+
+  // Ensure caught_pokemon is populated from any existing progress (non-destructive migration check)
+  try {
+    await run(`
+      INSERT OR IGNORE INTO caught_pokemon (game_id, pokemon_id)
+      SELECT r.game_id, r.pokemon_id
+      FROM requirements r
+      JOIN progress p ON r.id = p.requirement_id
+      WHERE p.completed = 1
+    `);
+  } catch (err) {
+    console.error("Migration to caught_pokemon failed:", err);
+  }
+
+  // Migrate existing requirements to use the new pokedollar symbol
+  try {
+    await run(`
+      UPDATE requirements 
+      SET location_details = 'Route 4 Pokémon Center (Buy for 500 ₽)' 
+      WHERE location_details LIKE 'Route 4 Pokémon Center (Buy for 500%'
+    `);
+  } catch (err) {
+    console.error("Migration of currency symbol failed:", err);
+  }
+
+  // Differential seeder: Only insert what is missing!
+  await seedMissingData();
+
+  // Create or refresh blank redundancy copy if we are in production
+  if (dbPath.includes('pokemon_checklist.db')) {
+    const blankPath = path.join(__dirname, 'pokemon_checklist_blank.db');
+    try {
+      fs.copyFileSync(dbPath, blankPath);
+      // Clean caught logs in the blank copy
+      const blankDb = new sqlite3.Database(blankPath);
+      blankDb.serialize(() => {
+        blankDb.run("UPDATE progress SET completed = 0");
+        blankDb.run("DELETE FROM caught_pokemon");
+        blankDb.close();
+      });
+      console.log(`Updated blank redundancy database at: ${blankPath}`);
+    } catch (err) {
+      console.error("Failed to create blank redundancy copy:", err);
+    }
+  }
+}
+
+async function seedMissingData() {
+  console.log("Checking for missing data in database...");
+
+  // 1. Seed missing master pokemon
+  await run("BEGIN TRANSACTION");
+  for (const p of pokemonMaster) {
+    await run(`INSERT OR IGNORE INTO pokemon (id, name, type1, type2) VALUES (?, ?, ?, ?)`, [p.id, p.name, p.type1, p.type2]);
+  }
+  await run("COMMIT");
+
+  // 2. Seed missing games
+  const gamesList = [
+    { id: 'red', name: 'Pokémon Red', gen: 1, region: 'Kanto' },
+    { id: 'blue', name: 'Pokémon Blue', gen: 1, region: 'Kanto' },
+    { id: 'yellow', name: 'Pokémon Yellow', gen: 1, region: 'Kanto' },
+    { id: 'gold', name: 'Pokémon Gold', gen: 2, region: 'Johto' },
+    { id: 'silver', name: 'Pokémon Silver', gen: 2, region: 'Johto' },
+    { id: 'crystal', name: 'Pokémon Crystal', gen: 2, region: 'Johto' },
+    { id: 'ruby', name: 'Pokémon Ruby', gen: 3, region: 'Hoenn' },
+    { id: 'sapphire', name: 'Pokémon Sapphire', gen: 3, region: 'Hoenn' },
+    { id: 'emerald', name: 'Pokémon Emerald', gen: 3, region: 'Hoenn' },
+    { id: 'firered', name: 'Pokémon FireRed', gen: 3, region: 'Kanto' },
+    { id: 'leafgreen', name: 'Pokémon LeafGreen', gen: 3, region: 'Kanto' }
+  ];
+
+  await run("BEGIN TRANSACTION");
+  for (const g of gamesList) {
+    // If the game exists but is named a Stub, rename it to active
+    await run(`
+      INSERT INTO games (id, name, generation, region) VALUES (?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET name = excluded.name, generation = excluded.generation, region = excluded.region
+    `, [g.id, g.name, g.gen, g.region]);
+  }
+  await run("COMMIT");
+
+  // 3. Seed missing sections (10 per game)
+  await run("BEGIN TRANSACTION");
+  let sectionGlobalId = 1;
+  for (const game of gamesList) {
+    const names = game.region === 'Kanto' 
+      ? [
+          "Pre-Boulder Badge (Brock)", "Pre-Cascade Badge (Misty)", "Pre-Thunder Badge (Lt. Surge)",
+          "Pre-Rainbow Badge (Erika)", "Pre-Soul Badge (Koga)", "Pre-Marsh Badge (Sabrina)",
+          "Pre-Volcano Badge (Blaine)", "Pre-Earth Badge (Giovanni)", "Pre-Elite Four", "Post-Game"
+        ]
+      : game.region === 'Johto'
+      ? [
+          "Pre-Zephyr Badge (Falkner)", "Pre-Hive Badge (Bugsy)", "Pre-Plain Badge (Whitney)",
+          "Pre-Fog Badge (Morty)", "Pre-Storm Badge (Chuck)", "Pre-Mineral Badge (Jasmine)",
+          "Pre-Glacier Badge (Pryce)", "Pre-Rising Badge (Clair)", "Pre-Elite Four", "Post-Game"
+        ]
+      : [
+          "Pre-Stone Badge (Roxanne)", "Pre-Knuckle Badge (Brawly)", "Pre-Dynamo Badge (Wattson)",
+          "Pre-Heat Badge (Flannery)", "Pre-Balance Badge (Norman)", "Pre-Feather Badge (Winona)",
+          "Pre-Mind Badge (Tate & Liza)", "Pre-Rain Badge (Wallace)", "Pre-Elite Four", "Post-Game"
+        ];
+
+    for (let i = 0; i < 10; i++) {
+      await run(`
+        INSERT OR IGNORE INTO sections (id, game_id, name, description, order_index)
+        VALUES (?, ?, ?, ?, ?)
+      `, [sectionGlobalId, game.id, names[i], `Milestone section ${i + 1} for ${game.name}`, i + 1]);
+      sectionGlobalId++;
+    }
+  }
+  await run("COMMIT");
+
+  // Track mapping from game_id + section_order_index to absolute section_id
+  const sectionRows = await query(`SELECT id, game_id, order_index FROM sections`);
+  const sectionIdMap = {};
+  sectionRows.forEach(row => {
+    sectionIdMap[`${row.game_id}_${row.order_index}`] = row.id;
+  });
+
+  // 4. Seed requirements & corresponding progress rows
+  // To ensure requirements are always up-to-date with latest resolver rules (like evolution groupings),
+  // we rebuild them dynamically while preserving user progress from caught_pokemon.
+  await run("DELETE FROM progress");
+  await run("DELETE FROM requirements");
+
+  await run("BEGIN TRANSACTION");
+  for (const game of gamesList) {
+    const maxDex = game.gen === 1 ? 151 : (game.gen === 2 ? 251 : 386);
+    for (let pid = 1; pid <= maxDex; pid++) {
+      const resolved = resolveRequirement(game.id, pid, pokemonMap);
+      const absoluteSecId = sectionIdMap[`${game.id}_${resolved.section_id}`];
+      if (!absoluteSecId) {
+        throw new Error(`Failed to map section for ${game.id} section index ${resolved.section_id}`);
+      }
+      await run(`
+        INSERT INTO requirements (game_id, section_id, pokemon_id, action_type, location_details, notes)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `, [game.id, absoluteSecId, pid, resolved.action_type, resolved.location_details, resolved.notes]);
+    }
+  }
+  await run("COMMIT");
+
+  // 5. Re-synchronize progress status from persistent caught_pokemon table
+  await run(`
+    INSERT INTO progress (requirement_id, completed)
+    SELECT r.id, CASE WHEN cp.pokemon_id IS NOT NULL THEN 1 ELSE 0 END
+    FROM requirements r
+    LEFT JOIN caught_pokemon cp ON r.game_id = cp.game_id AND r.pokemon_id = cp.pokemon_id
+  `);
+
+  console.log("Database verification & differential seeding complete.");
+}

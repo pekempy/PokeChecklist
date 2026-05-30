@@ -1,0 +1,16 @@
+{
+  "name": "pokemon-yellow-checklist",
+  "version": "1.0.0",
+  "description": "Pokémon checklist for Gen 1-3 games starting with Yellow",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "sqlite3": "^5.1.7"
+  }
+}
