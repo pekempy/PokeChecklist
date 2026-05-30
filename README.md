@@ -1,6 +1,10 @@
+
 # PokéChecklist
 
 A catch and evolution tracker for Generation 1 through 3 Pokémon games, starting with Pokémon Yellow. The application tracks catch requirements, evolutionary stages, location details, and method conditions across games.
+
+## Screenshot
+![Checklist Dashboard](screenshots/checklist_view.png)
 
 ## Features
 
