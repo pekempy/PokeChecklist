@@ -1627,3 +1627,259 @@ body {
   transform: translateY(-50%);
   pointer-events: none;
 }
+
+/* ============================================================
+   DESKTOP LAYOUT (≥900px)
+   - Wider content area
+   - Horizontal evolution chains
+   - Two-column card grid
+   - Larger, more spacious header
+   ============================================================ */
+
+@media (min-width: 900px) {
+
+  /* ── Header ───────────────────────────────────────────── */
+  .app-header {
+    padding: calc(16px + var(--safe-top)) 32px 16px 32px;
+    gap: 14px;
+  }
+
+  .brand-text h1 {
+    font-size: 1.55rem;
+  }
+
+  .brand-logo {
+    width: 40px;
+    height: 40px;
+  }
+
+  .brand-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .custom-select {
+    font-size: 0.9rem;
+    height: 42px;
+    padding: 0 28px 0 14px;
+  }
+
+  .set-default-btn,
+  .reset-game-btn {
+    height: 42px;
+    font-size: 0.8rem;
+    padding: 0 18px;
+  }
+
+  .search-box {
+    height: 46px;
+  }
+
+  #global-search-input {
+    font-size: 1rem;
+  }
+
+  /* ── Section Nav ──────────────────────────────────────── */
+  .section-nav {
+    padding: 10px 32px;
+    gap: 10px;
+  }
+
+  .nav-pill {
+    padding: 8px 18px;
+  }
+
+  .pill-title {
+    font-size: 0.85rem;
+  }
+
+  .pill-ratio {
+    font-size: 0.68rem;
+  }
+
+  /* ── Main Content ─────────────────────────────────────── */
+  .app-content {
+    max-width: 80%;
+    padding: 24px 32px;
+    gap: 20px;
+  }
+
+  .active-section-card {
+    padding: 20px 24px;
+  }
+
+  #section-title {
+    font-size: 1.35rem;
+  }
+
+  #section-desc {
+    font-size: 0.875rem;
+  }
+
+  /* ── Checklist Grid ───────────────────────────────────── */
+  /* Base level (stage 1) cards get a two-column grid */
+  .checklist-section {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    align-items: start;
+  }
+
+  /* Stage-2 and Stage-3 cards participate in the grid normally
+     but are visually connected with a horizontal connector line */
+  .checklist-card.evo-stage-2,
+  .checklist-card.evo-stage-3 {
+    margin-left: 0;
+    border-left: none;
+  }
+
+  /* ── Horizontal Evolution Chains ─────────────────────── */
+  /*
+   * The JS renders cards in order (stage-1, stage-2, stage-3).
+   * We use a CSS Grid trick: every trio of evolution cards is
+   * wrapped into a single "row" spanning both columns.
+   *
+   * Because we can't easily change the DOM, we use a container
+   * that wraps evo siblings — handled via a full-width row approach:
+   *
+   * Any card that is stage-2 or stage-3 breaks out of the 2-col
+   * grid and instead appears horizontally next to its predecessor
+   * by using a dedicated evo-chain row that spans full width and
+   * lays out its children as a horizontal flex strip.
+   */
+
+  /* Evolution chain wrapper (full-width row inside the grid) */
+  .evo-chain-row {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0;
+    position: relative;
+  }
+
+  /* Each card inside the chain row */
+  .evo-chain-row .checklist-card {
+    flex: 1;
+    min-width: 0;
+    border-radius: 0;
+    border-right-width: 0;
+    animation: none; /* prevent stagger conflicts */
+  }
+
+  .evo-chain-row .checklist-card:first-child {
+    border-radius: 16px 0 0 16px;
+  }
+
+  .evo-chain-row .checklist-card:last-child {
+    border-radius: 0 16px 16px 0;
+    border-right-width: 1px;
+  }
+
+  /* Arrow connector between evolution stages */
+  .evo-chain-row .evo-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    flex-shrink: 0;
+    background: linear-gradient(180deg, rgba(22,22,35,0.9) 0%, rgba(15,15,25,0.9) 100%);
+    border-top: 1px solid var(--card-border);
+    border-bottom: 1px solid var(--card-border);
+    color: var(--accent-yellow);
+    font-size: 1rem;
+    opacity: 0.7;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Stage badges on desktop */
+  .checklist-card.evo-stage-2 {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .checklist-card.evo-stage-3 {
+    border-color: rgba(255, 222, 0, 0.2);
+  }
+
+  /* ── Card internals ───────────────────────────────────── */
+  .checklist-card {
+    padding: 16px 18px;
+  }
+
+  .pokemon-name {
+    font-size: 1.05rem;
+  }
+
+  .dex-number {
+    font-size: 0.78rem;
+  }
+
+  .location-text {
+    max-width: 100%;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+  }
+
+  .checklist-encounter-item {
+    padding: 9px 14px;
+    font-size: 0.875rem;
+  }
+
+  .notes-row {
+    font-size: 0.75rem;
+  }
+
+  .action-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* ── Game ownership badges ────────────────────────────── */
+  .game-badge {
+    width: 20px;
+    height: 20px;
+    font-size: 0.62rem;
+  }
+
+  .game-badge.group-end {
+    margin-right: 14px;
+  }
+
+  /* ── Search results ───────────────────────────────────── */
+  .search-results-banner {
+    padding: 20px 24px;
+  }
+
+  .search-results-banner h3 {
+    font-size: 1.25rem;
+  }
+
+  /* ── Footer ───────────────────────────────────────────── */
+  .app-footer {
+    padding: 24px 32px;
+    font-size: 0.75rem;
+  }
+}
+
+/* Wide desktop (≥1400px): three columns */
+@media (min-width: 1400px) {
+  .checklist-section {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ── Bulbapedia Location Links ─────────────────────────── */
+.location-link {
+  color: var(--accent-yellow);
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(255, 222, 0, 0.4);
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.location-link:hover {
+  color: #ffffff;
+  border-bottom-color: #ffffff;
+  text-shadow: 0 0 8px rgba(255, 222, 0, 0.6);
+}

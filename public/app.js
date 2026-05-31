@@ -496,6 +496,11 @@ function selectSection(sectionId) {
 
 // Map action type + location/method to an icon badge
 function getActionIconHtml(actionType, locationDetails, notes) {
+  if (actionType === 'CATCH_EVOLVE') {
+    const catchIcon = getActionIconHtml('CATCH', locationDetails, notes);
+    const evolveIcon = getActionIconHtml('EVOLVE', locationDetails, notes);
+    return `${catchIcon}${evolveIcon}`;
+  }
   const loc = (locationDetails || '').toLowerCase();
   const n = (notes || '').toLowerCase();
   let icon = '';
@@ -554,6 +559,60 @@ function getActionIconHtml(actionType, locationDetails, notes) {
   }
   return '';
 }
+function getRegionForRoute(routeNum, gameId) {
+  // Hoenn routes: 101-134
+  if (routeNum >= 101 && routeNum <= 134) {
+    return 'Hoenn';
+  }
+  // Johto routes: 29-48
+  if (routeNum >= 29 && routeNum <= 48) {
+    return 'Johto';
+  }
+  // Kanto routes: 1-28
+  if (routeNum >= 1 && routeNum <= 28) {
+    return 'Kanto';
+  }
+  // Fallback to the game's region
+  const game = state.games.find(g => g.id === gameId);
+  if (game && game.region) {
+    return game.region;
+  }
+  return 'Kanto';
+}
+
+function linkifyLocation(locationText, gameId) {
+  if (!locationText) return '';
+  // Match "Route \d+" followed by optional list of routes separated by comma, ampersand, or "and"
+  const routeListRegex = /Route\s+\d+(?:(?:\s*(?:,|&|and)\s*)\d+)*/gi;
+  
+  return locationText.replace(routeListRegex, (match) => {
+    const numbers = match.match(/\d+/g);
+    if (!numbers) return match;
+    
+    const separators = match.split(/\d+/);
+    let result = '';
+    
+    for (let i = 0; i < numbers.length; i++) {
+      const numStr = numbers[i];
+      const routeNum = parseInt(numStr, 10);
+      const region = getRegionForRoute(routeNum, gameId);
+      const pageName = `${region}_Route_${routeNum}`;
+      const url = `https://bulbapedia.bulbagarden.net/wiki/${pageName}`;
+      
+      const prefix = separators[i] || '';
+      if (i === 0) {
+        const cleanPrefix = prefix.replace(/Route\s*/i, '');
+        const routeWord = prefix.match(/Route\s*/i)?.[0] || 'Route ';
+        result += cleanPrefix + `<a href="${url}" target="_blank" class="location-link" rel="noopener noreferrer" onclick="event.stopPropagation()">${routeWord}${numStr}</a>`;
+      } else {
+        result += prefix + `<a href="${url}" target="_blank" class="location-link" rel="noopener noreferrer" onclick="event.stopPropagation()">${numStr}</a>`;
+      }
+    }
+    result += separators[separators.length - 1] || '';
+    return result;
+  });
+}
+
 
 // Helper to check if a single requirement passes progression tool filters (Surf, Fishing Rods)
 function passesProgressionFilters(req, currentFilters) {
@@ -725,21 +784,59 @@ function renderChecklistCards() {
     activeSectionDetails.classList.remove('section-complete');
   }
 
-  filteredItems.forEach((item, index) => {
+  // ── Inject missing pre-evolution ancestors for carry-over chains ──
+  // If a carry-over is mid-chain (evo stage ≥ 2) and its ancestor is
+  // not already in the list (e.g. already caught), insert it before
+  // the carry-over so the horizontal chain renders with full context
+  // and the ancestor's caught status is visible.
+  if (state.evolutions) {
+    const existingIds = new Set(filteredItems.map(i => i.pokemon_id));
+    const toInsert = []; // { index, ancestors[] }
+
+    filteredItems.forEach((item, idx) => {
+      // Only for carry-over mid-chain items
+      if (item.section_id === state.selectedSectionId) return;
+      if ((item.evolution_stage || 1) <= 1) return;
+
+      const ancestors = [];
+      let currentId = item.pokemon_id;
+      while (true) {
+        const evo = state.evolutions[currentId];
+        if (!evo) break;
+        const parentId = evo.from;
+        if (!existingIds.has(parentId)) {
+          const parent = state.checklistItems.find(ci => ci.pokemon_id === parentId);
+          if (parent) {
+            ancestors.unshift(parent);   // oldest first
+            existingIds.add(parentId);   // prevent duplicates
+          }
+        }
+        currentId = parentId;
+      }
+      if (ancestors.length) toInsert.push({ index: idx, ancestors });
+    });
+
+    // Apply in reverse order so earlier splices don't shift later indices
+    toInsert.reverse().forEach(({ index, ancestors }) => {
+      filteredItems.splice(index, 0, ...ancestors);
+    });
+  }
+
+  // ── Build all card elements ─────────────────────────────
+  const cardElements = filteredItems.map((item, index) => {
     const card = document.createElement('div');
     card.setAttribute('data-pokemon-id', item.pokemon_id);
 
     const stageClass = item.evolution_stage === 2 ? 'evo-stage-2' : (item.evolution_stage >= 3 ? 'evo-stage-3' : '');
-    card.className = `checklist-card ${item.completed ? 'checked' : ''} ${stageClass}`;
+    card.className = `checklist-card ${item.completed ? 'checked' : ''} ${stageClass}`.trim();
     card.style.animationDelay = `${index * 0.04}s`;
-    
+
     const typesHtml = [item.pokemon_type1, item.pokemon_type2]
       .filter(t => t !== null && t !== '')
       .map(t => `<span class="badge type-${t.toLowerCase()}">${t}</span>`).join(' ');
-    
+
     const paddedDex = String(item.pokemon_id).padStart(3, '0');
-    
-    // Render the list of encounter requirements
+
     const rowsHtml = item.requirements.map(req => {
       const actionIconHtml = getActionIconHtml(req.action_type, req.location_details, req.notes);
       const notesHtml = req.notes ? `<div class="notes-row">${req.notes}</div>` : '';
@@ -751,7 +848,7 @@ function renderChecklistCards() {
           <div class="encounter-info">
             <div class="location-row">
               ${actionIconHtml}
-              <span class="location-text">${req.location_details}</span>
+              <span class="location-text">${linkifyLocation(req.location_details, state.selectedGameId)}</span>
             </div>
             ${notesHtml}
           </div>
@@ -781,7 +878,7 @@ function renderChecklistCards() {
       const groupEndClass = g.groupEnd ? 'group-end' : '';
       return `<span class="game-badge ${isCaught ? g.class : unobtainableClass} ${groupEndClass}" title="${isCaught ? 'Caught' : (isObtainable ? 'Obtainable' : 'Unobtainable')} in ${g.id.charAt(0).toUpperCase() + g.id.slice(1)}">${g.code}</span>`;
     }).join('');
-    
+
     const isCaughtInCurrent = caughtGames.includes(state.selectedGameId);
     let tradeButtonHtml = '';
     if (isCaughtInCurrent) {
@@ -799,10 +896,10 @@ function renderChecklistCards() {
         </div>
       `;
     }
-    
+
     const isCarryOver = item.section_id !== state.selectedSectionId;
     const carryOverHtml = isCarryOver ? `<span class="carry-over-badge">↩ Carry Over</span>` : '';
-    
+
     card.innerHTML = `
       <div class="card-content">
         <div class="pokemon-header">
@@ -855,10 +952,101 @@ function renderChecklistCards() {
         });
       }
     }
-    checklistGrid.appendChild(card);
+
+    // Attach metadata so the grouping pass can use it
+    card._evoStage = item.evolution_stage || 1;
+    card._pokemonId = item.pokemon_id;
+    return card;
   });
+
+  // ── Group evolution chains into horizontal rows ─────────
+  // Handles both linear (A→B→C) and branching (A→[B,C,D]) chains.
+  // For branching, the base card is shown left, with all branch
+  // evolutions stacked vertically on the right (e.g. Eevee eeveelutions).
+  let i = 0;
+  while (i < cardElements.length) {
+    const baseCard = cardElements[i];
+    const baseId = baseCard._pokemonId;
+
+    // 1. Collect linear chain (A→B→C) from this base
+    const linearChain = [baseCard];
+    let j = i + 1;
+    while (j < cardElements.length) {
+      const next = cardElements[j];
+      const last = linearChain[linearChain.length - 1];
+      const evo = state.evolutions && state.evolutions[next._pokemonId];
+      if (next._evoStage > 1 && evo && evo.from === last._pokemonId) {
+        linearChain.push(next);
+        j++;
+      } else break;
+    }
+
+    // 2. After the linear chain ends, look for sibling branches that also
+    //    evolve directly from baseId (e.g. Jolteon/Flareon after Vaporeon)
+    const siblingBranches = [];
+    if (linearChain.length > 1) {
+      const collectedIds = new Set(linearChain.map(c => c._pokemonId));
+      while (j < cardElements.length) {
+        const next = cardElements[j];
+        const evo = state.evolutions && state.evolutions[next._pokemonId];
+        if (next._evoStage > 1 && evo && evo.from === baseId && !collectedIds.has(next._pokemonId)) {
+          siblingBranches.push(next);
+          collectedIds.add(next._pokemonId);
+          j++;
+        } else break;
+      }
+    }
+
+    const isBranching = siblingBranches.length > 0;
+    const isChain = linearChain.length > 1;
+
+    if (isBranching) {
+      // Branching: base → [branch1, branch2, branch3 stacked]
+      const allBranches = [...linearChain.slice(1), ...siblingBranches];
+      const row = document.createElement('div');
+      row.className = 'evo-chain-row evo-chain-branching';
+
+      row.appendChild(baseCard);
+
+      const arrow = document.createElement('div');
+      arrow.className = 'evo-arrow';
+      arrow.textContent = '→';
+      row.appendChild(arrow);
+
+      const branchContainer = document.createElement('div');
+      branchContainer.className = 'evo-branches';
+      allBranches.forEach(c => branchContainer.appendChild(c));
+      row.appendChild(branchContainer);
+
+      checklistGrid.appendChild(row);
+      i = j;
+
+    } else if (isChain) {
+      // Linear: A → B → C
+      const row = document.createElement('div');
+      row.className = 'evo-chain-row';
+      linearChain.forEach((c, idx) => {
+        if (idx > 0) {
+          const arrow = document.createElement('div');
+          arrow.className = 'evo-arrow';
+          arrow.textContent = '→';
+          row.appendChild(arrow);
+        }
+        row.appendChild(c);
+      });
+      checklistGrid.appendChild(row);
+      i = j;
+
+    } else {
+      checklistGrid.appendChild(baseCard);
+      i++;
+    }
+  }
+
+
   checklistGrid.scrollTop = previousScroll;
 }
+
 
 // Update a card's DOM state without reloading the list
 function updateCardDOM(requirementId, pokemonId, isCompleted, caughtGames) {
@@ -898,13 +1086,30 @@ function updateCardDOM(requirementId, pokemonId, isCompleted, caughtGames) {
         { id: 'firered', code: 'FR', class: 'active-firered' },
         { id: 'leafgreen', code: 'LG', class: 'active-leafgreen' }
       ];
-      const ownershipHtml = gamesList.map(g => {
-        const isOwned = caughtGames.includes(g.id);
-        const isCurrent = g.id === state.selectedGameId;
-        const highlightClass = isOwned ? g.class : '';
-        const borderClass = isCurrent ? 'current-game-badge' : '';
-        return `<span class="badge ${highlightClass} ${borderClass}">${g.code}</span>`;
-      }).join('');
+      const isSearchCard = card.querySelector('.search-encounter-group') !== null;
+      let ownershipHtml = '';
+      if (isSearchCard) {
+        let obtainableGames = [];
+        const searchPkmn = state.searchResults.find(p => p.pokemon_id === pokemonId);
+        if (searchPkmn && searchPkmn.obtainable_games) {
+          obtainableGames = searchPkmn.obtainable_games;
+        }
+        ownershipHtml = gamesList.map(g => {
+          const isCaught = caughtGames.includes(g.id);
+          const isObtainable = obtainableGames.includes(g.id);
+          const unobtainableClass = (!isCaught && !isObtainable) ? 'unobtainable' : 'placeholder';
+          const groupEndClass = g.groupEnd ? 'group-end' : '';
+          return `<span class="game-badge ${isCaught ? g.class : unobtainableClass} ${groupEndClass}" title="${isCaught ? 'Caught' : (isObtainable ? 'Obtainable' : 'Unobtainable')} in ${g.id.charAt(0).toUpperCase() + g.id.slice(1)}">${g.code}</span>`;
+        }).join('');
+      } else {
+        ownershipHtml = gamesList.map(g => {
+          const isOwned = caughtGames.includes(g.id);
+          const isCurrent = g.id === state.selectedGameId;
+          const highlightClass = isOwned ? g.class : '';
+          const borderClass = isCurrent ? 'current-game-badge' : '';
+          return `<span class="badge ${highlightClass} ${borderClass}">${g.code}</span>`;
+        }).join('');
+      }
       ownershipContainer.innerHTML = ownershipHtml;
     }
 
@@ -1053,7 +1258,7 @@ function updateCardDOM(requirementId, pokemonId, isCompleted, caughtGames) {
 }
 
 // Toggle status of a checklist item (completed <-> incomplete)
-async function toggleItemCompletion(requirementId) {
+async function toggleItemCompletion(requirementId, forcedStatus = null) {
   // Find pokemon and requirement in checklistItems (active game)
   let foundPkmn = null;
   let foundReq = null;
@@ -1081,7 +1286,7 @@ async function toggleItemCompletion(requirementId) {
   if (!foundReq && !searchReq) return;
 
   const currentStatus = foundReq ? foundReq.completed : searchReq.completed;
-  const newStatus = currentStatus === 1 ? 0 : 1;
+  const newStatus = forcedStatus !== null ? forcedStatus : (currentStatus === 1 ? 0 : 1);
 
   // Optimistic UI updates
   if (foundReq) foundReq.completed = newStatus;
@@ -1274,18 +1479,63 @@ function renderSearchResults() {
     // Encounters html
     let encountersHtml = '';
     if (item.requirements && item.requirements.length > 0) {
-      const rowsHtml = item.requirements.map(req => {
+      // Group requirements by game_id
+      const groupedReqs = {};
+      item.requirements.forEach(req => {
+        if (!groupedReqs[req.game_id]) {
+          groupedReqs[req.game_id] = [];
+        }
+        groupedReqs[req.game_id].push(req);
+      });
+
+      const processedReqs = [];
+      Object.keys(groupedReqs).forEach(gameId => {
+        const reqs = groupedReqs[gameId];
+        const catchReqs = reqs.filter(r => r.action_type === 'CATCH');
+        const evolveReq = reqs.find(r => r.action_type === 'EVOLVE');
+
+        if (catchReqs.length > 0 && evolveReq) {
+          // Merge all catch locations and the evolution!
+          const wildLocs = catchReqs.map(r => r.location_details.replace(/\s*\(.*\)/, '')).join(' & ');
+          const combinedLoc = `${wildLocs} / ${evolveReq.location_details}`;
+          const combinedNotes = [...catchReqs.map(r => r.notes), evolveReq.notes].filter(Boolean).join(' | ');
+          const isCompleted = catchReqs.some(r => r.completed === 1) || evolveReq.completed === 1;
+          const allIds = [...catchReqs.map(r => r.requirement_id), evolveReq.requirement_id];
+
+          processedReqs.push({
+            requirement_id: catchReqs[0].requirement_id,
+            requirement_ids: allIds,
+            game_id: gameId,
+            game_name: catchReqs[0].game_name,
+            action_type: 'CATCH_EVOLVE',
+            location_details: combinedLoc,
+            notes: combinedNotes,
+            completed: isCompleted ? 1 : 0
+          });
+        } else {
+          reqs.forEach(r => {
+            processedReqs.push({
+              ...r,
+              requirement_ids: [r.requirement_id]
+            });
+          });
+        }
+      });
+
+      const rowsHtml = processedReqs.map(req => {
         const actionIconHtml = getActionIconHtml(req.action_type, req.location_details, req.notes);
         const notesHtml = req.notes ? `<div class="encounter-notes">${req.notes}</div>` : '';
         return `
-          <div class="search-encounter-item ${req.completed ? 'checked' : ''}" data-requirement-id="${req.requirement_id}">
+          <div class="search-encounter-item ${req.completed ? 'checked' : ''}" 
+               data-requirement-id="${req.requirement_id}" 
+               data-requirement-ids="${req.requirement_ids.join(',')}">
             <div class="checkbox-container">
               <div class="custom-checkbox"></div>
             </div>
             <div class="encounter-info">
               <div class="encounter-details">
                 <span class="game-tag tag-${req.game_id}">${req.game_name}</span>
-                <span class="location-text">${req.location_details}</span>
+                <span class="location-text">${linkifyLocation(req.location_details, req.game_id)}</span>
               </div>
               ${actionIconHtml}
               ${notesHtml}
@@ -1333,8 +1583,19 @@ function renderSearchResults() {
     card.querySelectorAll('.search-encounter-item').forEach(encItem => {
       encItem.addEventListener('click', async (e) => {
         e.stopPropagation();
-        const reqId = parseInt(encItem.dataset.requirementId);
-        await toggleItemCompletion(reqId);
+        const reqIds = encItem.dataset.requirementIds.split(',').map(Number);
+        const mainReqId = parseInt(encItem.dataset.requirementId);
+        
+        let searchReq = null;
+        for (const pkmn of state.searchResults) {
+          const req = pkmn.requirements.find(r => r.requirement_id === mainReqId);
+          if (req) { searchReq = req; break; }
+        }
+        
+        const currentStatus = searchReq ? searchReq.completed : 0;
+        const newStatus = currentStatus === 1 ? 0 : 1;
+        
+        await Promise.all(reqIds.map(reqId => toggleItemCompletion(reqId, newStatus)));
       });
     });
 
