@@ -6,6 +6,7 @@ let state = {
   selectedGameId: 'yellow',
   sections: [],
   selectedSectionId: null,
+  selectedSubTab: 'All',
   checklistItems: [], // Holds all requirements + progress for the selected game
   filters: {
     hideCaught: false,
@@ -25,6 +26,7 @@ const sectionNav = document.getElementById('section-nav');
 const activeSectionDetails = document.getElementById('active-section-details');
 const sectionTitle = document.getElementById('section-title');
 const sectionDesc = document.getElementById('section-desc');
+const subTabsContainer = document.getElementById('sub-tabs-container');
 const checklistGrid = document.getElementById('checklist-grid');
 const stubWarning = document.getElementById('stub-warning');
 const progressFill = document.getElementById('progress-fill');
@@ -465,6 +467,7 @@ function renderSectionPills() {
 // Select and display a checklist section
 function selectSection(sectionId) {
   state.selectedSectionId = sectionId;
+  state.selectedSubTab = 'All';
   if (!state.gameFilters[state.selectedGameId]) {
     state.gameFilters[state.selectedGameId] = { surf: false, rod: 'none', trade_link: 'all', active_section_id: null };
   }
@@ -688,6 +691,138 @@ function isPokemonObtainable(pokemonId, currentFilters, memo = {}) {
   return isObtainable;
 }
 
+// Helper to extract clean location/route names from a requirement
+function getCleanLocationNames(req) {
+  if (req.action_type === 'TRADE') {
+    if (req.location_details === 'Link Trade') return ['Link Trade'];
+    const match = req.location_details.match(/^([^(]+)/);
+    return match ? [match[1].trim()] : [req.location_details];
+  }
+  if (req.action_type === 'EVOLVE') return ['Evolve'];
+  if (req.action_type === 'BREED') return ['Breed'];
+  
+  const details = req.location_details;
+  const cleanMatch = details.match(/^([^(]+)/);
+  const name = cleanMatch ? cleanMatch[1].trim() : details;
+  
+  if (name.includes('Route')) {
+    const parts = name.split(/,|\b&\b|\bor\b/).map(p => p.trim());
+    return parts.map(p => {
+      if (p.startsWith('Route ')) return p;
+      if (/^\d+$/.test(p)) return `Route ${p}`;
+      return p;
+    });
+  }
+  
+  return [name];
+}
+
+// Render sub-tabs for route-based filtering
+function renderSubTabs(sectionItems) {
+  if (!subTabsContainer) return;
+  
+  if (!sectionItems || sectionItems.length === 0) {
+    subTabsContainer.innerHTML = '';
+    subTabsContainer.classList.add('hidden');
+    return;
+  }
+
+  const currentFilters = state.gameFilters[state.selectedGameId] || { surf: false, rod: 'none' };
+  const locations = new Set();
+
+  sectionItems.forEach(item => {
+    item.requirements.forEach(req => {
+      let passes = true;
+      if (req.action_type === 'CATCH' || req.action_type === 'GIFT') {
+        passes = passesProgressionFilters(req, currentFilters);
+      } else if (req.action_type === 'EVOLVE') {
+        const evo = state.evolutions && state.evolutions[item.pokemon_id];
+        if (evo && evo.from) {
+          passes = isPokemonObtainable(evo.from, currentFilters);
+        }
+      } else if (req.action_type === 'BREED') {
+        const babyEvoTargetId = Object.keys(state.evolutions).find(key => state.evolutions[key].from === item.pokemon_id);
+        if (babyEvoTargetId) {
+          passes = isPokemonObtainable(Number(babyEvoTargetId), currentFilters);
+        }
+      }
+
+      if (passes) {
+        const names = getCleanLocationNames(req);
+        names.forEach(name => locations.add(name));
+      }
+    });
+  });
+
+  if (locations.size === 0) {
+    subTabsContainer.innerHTML = '';
+    subTabsContainer.classList.add('hidden');
+    return;
+  }
+
+  const locList = Array.from(locations).sort((a, b) => {
+    const aRoute = a.startsWith('Route ');
+    const bRoute = b.startsWith('Route ');
+    if (aRoute && !bRoute) return -1;
+    if (!aRoute && bRoute) return 1;
+    if (aRoute && bRoute) {
+      const aNum = parseInt(a.replace('Route ', ''), 10);
+      const bNum = parseInt(b.replace('Route ', ''), 10);
+      if (!isNaN(aNum) && !isNaN(bNum)) return aNum - bNum;
+      return a.localeCompare(b);
+    }
+    
+    const specials = ['Evolve', 'Breed', 'Link Trade'];
+    const aSpec = specials.indexOf(a);
+    const bSpec = specials.indexOf(b);
+    if (aSpec !== -1 && bSpec === -1) return 1;
+    if (aSpec === -1 && bSpec !== -1) return -1;
+    if (aSpec !== -1 && bSpec !== -1) return aSpec - bSpec;
+    
+    return a.localeCompare(b);
+  });
+
+  locList.unshift('All');
+
+  if (!locList.includes(state.selectedSubTab)) {
+    state.selectedSubTab = 'All';
+  }
+
+  // Check if identical to existing buttons to prevent layout thrashing
+  const currentRendered = Array.from(subTabsContainer.querySelectorAll('.sub-tab')).map(b => b.textContent);
+  const isIdentical = currentRendered.length === locList.length && currentRendered.every((val, index) => val === locList[index]);
+  
+  if (isIdentical) {
+    const buttons = subTabsContainer.querySelectorAll('.sub-tab');
+    buttons.forEach(btn => {
+      if (btn.textContent === state.selectedSubTab) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+    return;
+  }
+
+  subTabsContainer.innerHTML = '';
+  locList.forEach(loc => {
+    const btn = document.createElement('button');
+    btn.className = `sub-tab ${state.selectedSubTab === loc ? 'active' : ''}`;
+    btn.textContent = loc;
+    btn.addEventListener('click', () => {
+      const siblings = subTabsContainer.querySelectorAll('.sub-tab');
+      siblings.forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+      
+      state.selectedSubTab = loc;
+      renderChecklistCards();
+    });
+    subTabsContainer.appendChild(btn);
+  });
+
+  subTabsContainer.classList.remove('hidden');
+}
+
 // Render checklist item cards for the selected section
 function renderChecklistCards() {
   checklistGrid.innerHTML = '';
@@ -697,6 +832,9 @@ function renderChecklistCards() {
 
   // 1. Current section items
   const currentSectionItems = state.checklistItems.filter(item => item.section_id === state.selectedSectionId);
+
+  // Render sub-tabs for route-based filtering
+  renderSubTabs(currentSectionItems);
 
   // 2. Direct carry over items (uncompleted pokemon from previous sections)
   const finalCarryOvers = state.checklistItems.filter(item => {
@@ -767,6 +905,16 @@ function renderChecklistCards() {
       requirements: validReqs
     };
   }).filter(item => item.requirements.length > 0);
+
+  // Apply Sub-Tab Route Filter
+  if (state.selectedSubTab !== 'All') {
+    filteredItems = filteredItems.filter(item => {
+      return item.requirements.some(req => {
+        const names = getCleanLocationNames(req);
+        return names.includes(state.selectedSubTab);
+      });
+    });
+  }
 
   if (filteredItems.length === 0) {
     const hasActiveFilters = state.filters.hideCaught || state.filters.onlyCarryover || state.filters.hideCarryover || state.filters.tradeLink !== 'all' || !currentFilters.surf || currentFilters.rod !== 'super';
