@@ -61,7 +61,14 @@ function matchLocation(dbLoc, apiLoc) {
   if (dbClean.includes('cerulean cave') && apiClean.includes('unknown dungeon')) return true;
   
   // Fallback: check overlap of words
-  const ignore = ['and', 'the', 'a', 'or', 'of', 'in', 'f', 'b1f', 'b2f', 'b3f', 'b4f'];
+  const ignore = [
+    'and', 'the', 'a', 'or', 'of', 'in', 'f', 'b1f', 'b2f', 'b3f', 'b4f',
+    'route', 'cave', 'mt', 'mountain', 'lake', 'city', 'town', 'forest', 'tunnel',
+    'ruins', 'island', 'islands', 'pass', 'path', 'entrance', 'house', 'hideout',
+    'tower', 'well', 'woods', 'seafoam', 'safari', 'mansion', 'dungeon',
+    'valley', 'canyon', 'bridge', 'beach', 'road', 'halls', 'victory', 'new', 'old',
+    'floor', 'area', 'room', 'cellar', 'underpass', 'exit', 'entrance'
+  ];
   const dbSigs = dbWords.filter(w => !ignore.includes(w));
   const apiSigs = apiWords.filter(w => !ignore.includes(w));
   
@@ -83,7 +90,8 @@ function getEncounterDetails(gameId, pokemonId, dbLocation) {
   
   return matches.map(m => {
     const methodStr = m.method.charAt(0).toUpperCase() + m.method.slice(1).replace('-', ' ');
-    return `${methodStr} [Lvl ${m.level_range}, ${m.chance}%]`;
+    const cappedChance = Math.min(100, m.chance);
+    return `${methodStr} [Lvl ${m.level_range}, ${cappedChance}%]`;
   }).join(' | ');
 }
 

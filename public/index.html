@@ -95,6 +95,10 @@
         <button id="filter-hide-caught" class="filter-btn">
           <span class="filter-btn-icon">👁️</span> Hide Caught
         </button>
+        <button id="filter-show-evolutions" class="filter-btn active">
+          <span class="filter-btn-icon">🧬</span> Show Evolutions
+        </button>
+
         <button id="filter-only-carryover" class="filter-btn">
           <span class="filter-btn-icon">↩</span> Only Carry-Over
         </button>
@@ -107,6 +111,11 @@
         <label class="tool-filter-checkbox" id="surf-filter-label">
           <input type="checkbox" id="tool-surf">
           <span>HM03 Surf</span>
+        </label>
+
+        <label class="tool-filter-checkbox" id="headbutt-filter-label" style="display: none;">
+          <input type="checkbox" id="tool-headbutt" checked>
+          <span>🌳 Headbutt</span>
         </label>
 
         <div class="tool-filter-select-wrapper">
@@ -123,6 +132,14 @@
             <option value="all">All Evolutions</option>
             <option value="hide">Hide Trade Evo</option>
             <option value="only">Only Trade Evo</option>
+          </select>
+        </div>
+
+        <div class="tool-filter-select-wrapper" id="time-filter-wrapper" style="display: none;">
+          <select id="filter-time-of-day" class="tool-filter-select">
+            <option value="all">☀️🌙 All Times</option>
+            <option value="day">☀️ Day / Morning</option>
+            <option value="night">🌙 Night</option>
           </select>
         </div>
       </div>

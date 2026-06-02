@@ -644,7 +644,9 @@ export const gen2Wild = {
     226: { loc: "Route 41 (Surfing)", sec: 5 }, // Mantine
     228: { loc: "Route 7 (Night)", sec: 10 }, // Houndour
     235: { loc: "Ruins of Alph (Grass)", sec: 1 }, // Smeargle
-    211: { loc: "Route 32 (Fishing - Swarm/Old Rod) & Route 12/13 (Fishing - Super Rod)", sec: 2 } // Qwilfish
+    211: { loc: "Route 32 (Fishing - Swarm/Old Rod) & Route 12/13 (Fishing - Super Rod)", sec: 2 }, // Qwilfish
+    60: { loc: "Route 30 & 31 (Fishing - Good Rod)", sec: 2 }, // Poliwag
+    61: { loc: "Route 30 & 31 (Surfing)", sec: 4 } // Poliwhirl
   },
   silver: {
     161: { loc: "Route 29 (Morning/Day)", sec: 1 }, // Sentret
@@ -733,7 +735,9 @@ export const gen2Wild = {
     222: { loc: "Cherrygrove City & Route 34 (Fishing - Good Rod)", sec: 2 }, // Corsola
     228: { loc: "Route 7 (Night)", sec: 10 }, // Houndour
     235: { loc: "Ruins of Alph (Grass)", sec: 1 }, // Smeargle
-    211: { loc: "Route 32 (Fishing - Swarm/Old Rod) & Route 12/13 (Fishing - Super Rod)", sec: 2 } // Qwilfish
+    211: { loc: "Route 32 (Fishing - Swarm/Old Rod) & Route 12/13 (Fishing - Super Rod)", sec: 2 }, // Qwilfish
+    60: { loc: "Route 30 & 31 (Fishing - Good Rod)", sec: 2 }, // Poliwag
+    61: { loc: "Route 30 & 31 (Surfing)", sec: 4 } // Poliwhirl
   },
   crystal: {
     161: { loc: "Route 29 (Morning/Day)", sec: 1 }, // Sentret
@@ -826,7 +830,15 @@ export const gen2Wild = {
     225: { loc: "Ice Path (Cave)", sec: 7 }, // Delibird
     226: { loc: "Route 41 (Surfing)", sec: 5 }, // Mantine
     228: { loc: "Route 7 (Night)", sec: 10 }, // Houndour
-    235: { loc: "Ruins of Alph (Grass)", sec: 1 } // Smeargle
+    235: { loc: "Ruins of Alph (Grass)", sec: 1 }, // Smeargle
+    60: [
+      { loc: "Route 30 & 31 (Night)", sec: 1 }, // Poliwag
+      { loc: "Route 30 & 31 (Fishing - Good Rod)", sec: 2 }
+    ],
+    61: [
+      { loc: "Route 30 & 31 (Surfing)", sec: 4 }, // Poliwhirl
+      { loc: "Route 44 (Night)", sec: 7 }
+    ]
   }
 };
 
@@ -1463,15 +1475,20 @@ export function resolveRequirements(gameId, pokemonId, pokemonMap, visited = new
     const fromGen = getGeneration(evo.from);
     if (fromGen <= gameGen) {
       const preReqs = resolveRequirements(gameId, evo.from, pokemonMap, new Set(visited));
-      // Use earliest section of pre-evolution as the section for the evo entry
-      const preSecId = preReqs.length > 0 ? Math.min(...preReqs.map(r => r.section_id)) : 10;
-      const preName = pokemonMap[evo.from].name;
-      push({
-        action_type: 'EVOLVE',
-        location_details: `Evolve ${preName}`,
-        notes: `Evolves from ${preName} (${evo.method}).`,
-        section_id: preSecId
-      });
+      if (preReqs.length > 0) {
+        const nativePreReqs = preReqs.filter(r => r.action_type !== 'TRADE' || r.location_details !== 'Link Trade');
+        if (nativePreReqs.length > 0) {
+          // Use earliest section of native pre-evolution as the section for the evo entry
+          const preSecId = Math.min(...nativePreReqs.map(r => r.section_id));
+          const preName = pokemonMap[evo.from].name;
+          push({
+            action_type: 'EVOLVE',
+            location_details: `Evolve ${preName}`,
+            notes: `Evolves from ${preName} (${evo.method}).`,
+            section_id: preSecId
+          });
+        }
+      }
     }
   }
 

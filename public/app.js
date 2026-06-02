@@ -10,9 +10,12 @@ let state = {
   checklistItems: [], // Holds all requirements + progress for the selected game
   filters: {
     hideCaught: false,
+    showEvolutions: true,
     onlyCarryover: false,
     hideCarryover: false,
-    tradeLink: 'all'
+    tradeLink: 'all',
+    timeOfDay: 'all',
+    showHeadbutt: true
   },
   gameFilters: {}, // Maps gameId -> { surf: false, rod: 'none' }
   evolutions: {}, // Static evolution map from database/server
@@ -163,6 +166,23 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  const filterShowEvolutions = document.getElementById('filter-show-evolutions');
+  if (filterShowEvolutions) {
+    filterShowEvolutions.addEventListener('click', () => {
+      state.filters.showEvolutions = !state.filters.showEvolutions;
+      filterShowEvolutions.classList.toggle('active', state.filters.showEvolutions);
+      renderChecklistCards();
+    });
+  }
+
+  const toolHeadbutt = document.getElementById('tool-headbutt');
+  if (toolHeadbutt) {
+    toolHeadbutt.addEventListener('change', (e) => {
+      state.filters.showHeadbutt = e.target.checked;
+      renderChecklistCards();
+    });
+  }
+
   if (filterOnlyCarryover) {
     filterOnlyCarryover.addEventListener('click', () => {
       state.filters.onlyCarryover = !state.filters.onlyCarryover;
@@ -198,6 +218,15 @@ window.addEventListener('DOMContentLoaded', async () => {
       state.gameFilters[state.selectedGameId].trade_link = e.target.value;
       state.filters.tradeLink = e.target.value;
       saveGameFilters();
+      renderChecklistCards();
+    });
+  }
+
+  const filterTimeOfDay = document.getElementById('filter-time-of-day');
+  if (filterTimeOfDay) {
+    filterTimeOfDay.addEventListener('change', (e) => {
+      state.filters.timeOfDay = e.target.value;
+      renderSubTabs(state.sections.find(s => s.section_id === state.selectedSectionId)?.items);
       renderChecklistCards();
     });
   }
@@ -375,6 +404,32 @@ async function handleGameChange() {
     if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
 
     updateDefaultGameButton();
+
+    const timeFilterWrapper = document.getElementById('time-filter-wrapper');
+    if (timeFilterWrapper) {
+      const isGen2 = ['gold', 'silver', 'crystal'].includes(state.selectedGameId);
+      if (isGen2) {
+        timeFilterWrapper.style.display = 'block';
+      } else {
+        timeFilterWrapper.style.display = 'none';
+        state.filters.timeOfDay = 'all';
+        const filterTimeSelect = document.getElementById('filter-time-of-day');
+        if (filterTimeSelect) filterTimeSelect.value = 'all';
+      }
+    }
+
+    const headbuttFilterLabel = document.getElementById('headbutt-filter-label');
+    const toolHeadbutt = document.getElementById('tool-headbutt');
+    if (headbuttFilterLabel) {
+      const isGen2 = ['gold', 'silver', 'crystal'].includes(state.selectedGameId);
+      if (isGen2) {
+        headbuttFilterLabel.style.display = 'flex';
+      } else {
+        headbuttFilterLabel.style.display = 'none';
+        state.filters.showHeadbutt = true;
+        if (toolHeadbutt) toolHeadbutt.checked = true;
+      }
+    }
     // 1. Fetch sections for the selected game
     const sectionsRes = await fetch(`/api/sections?game_id=${state.selectedGameId}`);
     state.sections = await sectionsRes.json();
@@ -647,6 +702,45 @@ function passesProgressionFilters(req, currentFilters) {
   return true;
 }
 
+// Helper to check if a single requirement passes time of day filters (Morning, Day, Night) for Gen 2
+function passesTimeOfDayFilter(req, timeFilter) {
+  if (timeFilter === 'all') return true;
+  
+  const loc = (req.location_details || '').toLowerCase();
+  
+  // If there are no parenthesis, it's available all day
+  if (!loc.includes('(')) return true;
+  
+  // Extract the text inside parenthesis
+  const timeMatch = loc.match(/\(([^)]+)\)/);
+  if (!timeMatch) return true;
+  
+  const timeText = timeMatch[1].toLowerCase();
+  
+  // If it says "all day", it's always available
+  if (timeText.includes('all day')) return true;
+  
+  // Let's check other keywords: morning, day, night
+  const hasMorning = timeText.includes('morning');
+  const hasDay = timeText.includes('day');
+  const hasNight = timeText.includes('night');
+  
+  // If the timeText doesn't have morning/day/night, it's not a time filter (e.g. "grass", "surf", "headbutt")
+  if (!hasMorning && !hasDay && !hasNight) return true;
+  
+  if (timeFilter === 'day') {
+    // Return true if it is available in Morning or Day
+    return hasDay || hasMorning;
+  }
+  
+  if (timeFilter === 'night') {
+    // Return true if it is available in Night
+    return hasNight;
+  }
+  
+  return true;
+}
+
 // Helper to check recursively if a Pokémon is obtainable in the active game under current progression filters
 function isPokemonObtainable(pokemonId, currentFilters, memo = {}) {
   if (pokemonId in memo) return memo[pokemonId];
@@ -667,7 +761,8 @@ function isPokemonObtainable(pokemonId, currentFilters, memo = {}) {
   
   const isObtainable = pkmn.requirements.some(req => {
     if (req.action_type === 'CATCH' || req.action_type === 'GIFT') {
-      return passesProgressionFilters(req, currentFilters);
+      const passesHeadbutt = state.filters.showHeadbutt || !(req.location_details || '').toLowerCase().includes('headbutt');
+      return passesProgressionFilters(req, currentFilters) && passesTimeOfDayFilter(req, state.filters.timeOfDay) && passesHeadbutt;
     }
     if (req.action_type === 'TRADE') {
       return true;
@@ -691,31 +786,76 @@ function isPokemonObtainable(pokemonId, currentFilters, memo = {}) {
   return isObtainable;
 }
 
+// Helper to extract all clean locations/routes for a given Pokémon ID (recursively resolving pre-evolutions)
+function getPokemonLocations(pokemonId, visited = new Set()) {
+  if (visited.has(pokemonId)) return [];
+  visited.add(pokemonId);
+
+  const item = state.checklistItems.find(i => i.pokemon_id === pokemonId);
+  if (!item) return [];
+  
+  let locations = [];
+  item.requirements.forEach(req => {
+    if (req.action_type === 'EVOLVE') {
+      const evo = state.evolutions && state.evolutions[pokemonId];
+      if (evo && evo.from) {
+        locations = locations.concat(getPokemonLocations(evo.from, visited));
+      }
+    } else if (req.action_type === 'BREED') {
+      const babyEvoTargetId = Object.keys(state.evolutions).find(key => state.evolutions[key].from === pokemonId);
+      if (babyEvoTargetId) {
+        locations = locations.concat(getPokemonLocations(Number(babyEvoTargetId), visited));
+      }
+    } else {
+      locations = locations.concat(getCleanLocationNames(req, pokemonId, visited));
+    }
+  });
+  return Array.from(new Set(locations));
+}
+
 // Helper to extract clean location/route names from a requirement
-function getCleanLocationNames(req) {
+function getCleanLocationNames(req, pokemonId, visited = new Set()) {
   if (req.action_type === 'TRADE') {
     if (req.location_details === 'Link Trade') return ['Link Trade'];
     const match = req.location_details.match(/^([^(]+)/);
     return match ? [match[1].trim()] : [req.location_details];
   }
-  if (req.action_type === 'EVOLVE') return ['Evolve'];
-  if (req.action_type === 'BREED') return ['Breed'];
+  if (req.action_type === 'EVOLVE') {
+    const evo = state.evolutions && state.evolutions[pokemonId];
+    if (evo && evo.from) {
+      return ['Evolve'].concat(getPokemonLocations(evo.from, visited));
+    }
+    return ['Evolve'];
+  }
+  if (req.action_type === 'BREED') {
+    const babyEvoTargetId = Object.keys(state.evolutions).find(key => state.evolutions[key].from === pokemonId);
+    if (babyEvoTargetId) {
+      return ['Breed'].concat(getPokemonLocations(Number(babyEvoTargetId), visited));
+    }
+    return ['Breed'];
+  }
   
   const details = req.location_details;
   const cleanMatch = details.match(/^([^(]+)/);
   const name = cleanMatch ? cleanMatch[1].trim() : details;
   
-  if (name.includes('Route')) {
-    const parts = name.split(/,|\b&\b|\bor\b/).map(p => p.trim());
+  if (/Route/i.test(name)) {
+    const parts = name.split(/,|\band\b|\bor\b|&/i).map(p => p.trim());
     return parts.map(p => {
-      if (p.startsWith('Route ')) return p;
-      if (/^\d+$/.test(p)) return `Route ${p}`;
+      const routeMatch = p.match(/Route\s+(\d+)/i);
+      if (routeMatch) {
+        return `Route ${routeMatch[1]}`;
+      }
+      if (/^\d+$/.test(p)) {
+        return `Route ${p}`;
+      }
       return p;
     });
   }
   
   return [name];
 }
+
 
 // Render sub-tabs for route-based filtering
 function renderSubTabs(sectionItems) {
@@ -734,21 +874,30 @@ function renderSubTabs(sectionItems) {
     item.requirements.forEach(req => {
       let passes = true;
       if (req.action_type === 'CATCH' || req.action_type === 'GIFT') {
-        passes = passesProgressionFilters(req, currentFilters);
+        const passesHeadbutt = state.filters.showHeadbutt || !(req.location_details || '').toLowerCase().includes('headbutt');
+        passes = passesProgressionFilters(req, currentFilters) && passesTimeOfDayFilter(req, state.filters.timeOfDay) && passesHeadbutt;
       } else if (req.action_type === 'EVOLVE') {
-        const evo = state.evolutions && state.evolutions[item.pokemon_id];
-        if (evo && evo.from) {
-          passes = isPokemonObtainable(evo.from, currentFilters);
+        if (!state.filters.showEvolutions) {
+          passes = false;
+        } else {
+          const evo = state.evolutions && state.evolutions[item.pokemon_id];
+          if (evo && evo.from) {
+            passes = isPokemonObtainable(evo.from, currentFilters);
+          }
         }
       } else if (req.action_type === 'BREED') {
-        const babyEvoTargetId = Object.keys(state.evolutions).find(key => state.evolutions[key].from === item.pokemon_id);
-        if (babyEvoTargetId) {
-          passes = isPokemonObtainable(Number(babyEvoTargetId), currentFilters);
+        if (!state.filters.showEvolutions) {
+          passes = false;
+        } else {
+          const babyEvoTargetId = Object.keys(state.evolutions).find(key => state.evolutions[key].from === item.pokemon_id);
+          if (babyEvoTargetId) {
+            passes = isPokemonObtainable(Number(babyEvoTargetId), currentFilters);
+          }
         }
       }
 
       if (passes) {
-        const names = getCleanLocationNames(req);
+        const names = getCleanLocationNames(req, item.pokemon_id);
         names.forEach(name => locations.add(name));
       }
     });
@@ -882,9 +1031,11 @@ function renderChecklistCards() {
     // Filter the requirements inside this item
     const validReqs = item.requirements.filter(req => {
       if (req.action_type === 'CATCH' || req.action_type === 'GIFT') {
-        return passesProgressionFilters(req, currentFilters);
+        const passesHeadbutt = state.filters.showHeadbutt || !(req.location_details || '').toLowerCase().includes('headbutt');
+        return passesProgressionFilters(req, currentFilters) && passesTimeOfDayFilter(req, state.filters.timeOfDay) && passesHeadbutt;
       }
       if (req.action_type === 'EVOLVE') {
+        if (!state.filters.showEvolutions) return false;
         const evo = state.evolutions && state.evolutions[item.pokemon_id];
         if (evo && evo.from) {
           // If the pre-evolution isn't obtainable, hide the evolution card/method
@@ -892,6 +1043,7 @@ function renderChecklistCards() {
         }
       }
       if (req.action_type === 'BREED') {
+        if (!state.filters.showEvolutions) return false;
         const babyEvoTargetId = Object.keys(state.evolutions).find(key => state.evolutions[key].from === item.pokemon_id);
         if (babyEvoTargetId) {
           return isPokemonObtainable(Number(babyEvoTargetId), currentFilters);
@@ -910,7 +1062,7 @@ function renderChecklistCards() {
   if (state.selectedSubTab !== 'All') {
     filteredItems = filteredItems.filter(item => {
       return item.requirements.some(req => {
-        const names = getCleanLocationNames(req);
+        const names = getCleanLocationNames(req, item.pokemon_id);
         return names.includes(state.selectedSubTab);
       });
     });
