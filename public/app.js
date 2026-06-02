@@ -667,7 +667,7 @@ function isPokemonObtainable(pokemonId, currentFilters, memo = {}) {
       return passesProgressionFilters(req, currentFilters);
     }
     if (req.action_type === 'TRADE') {
-      return req.location_details !== 'Link Trade';
+      return true;
     }
     if (req.action_type === 'EVOLVE') {
       const evo = state.evolutions && state.evolutions[pokemonId];
@@ -962,51 +962,70 @@ function renderChecklistCards() {
   // ── Group evolution chains into horizontal rows ─────────
   // Handles both linear (A→B→C) and branching (A→[B,C,D]) chains.
   // For branching, the base card is shown left, with all branch
-  // evolutions stacked vertically on the right (e.g. Eevee eeveelutions).
-  let i = 0;
-  while (i < cardElements.length) {
-    const baseCard = cardElements[i];
-    const baseId = baseCard._pokemonId;
+  // sub-chains (which can themselves be linear or branching) stacked
+  // vertically on the right (e.g. Silcoon→Beautifly and Cascoon→Dustox).
+  
+  // Build the evolution tree nodes
+  const nodes = {};
+  cardElements.forEach(card => {
+    nodes[card._pokemonId] = {
+      card: card,
+      children: []
+    };
+  });
 
-    // 1. Collect linear chain (A→B→C) from this base
-    const linearChain = [baseCard];
-    let j = i + 1;
-    while (j < cardElements.length) {
-      const next = cardElements[j];
-      const last = linearChain[linearChain.length - 1];
-      const evo = state.evolutions && state.evolutions[next._pokemonId];
-      if (next._evoStage > 1 && evo && evo.from === last._pokemonId) {
-        linearChain.push(next);
-        j++;
-      } else break;
+  // Link children to parents
+  const roots = [];
+  cardElements.forEach(card => {
+    const id = card._pokemonId;
+    const evo = state.evolutions && state.evolutions[id];
+    if (card._evoStage > 1 && evo && evo.from && nodes[evo.from]) {
+      nodes[evo.from].children.push(nodes[id]);
+    } else {
+      roots.push(nodes[id]);
     }
+  });
 
-    // 2. After the linear chain ends, look for sibling branches that also
-    //    evolve directly from baseId (e.g. Jolteon/Flareon after Vaporeon)
-    const siblingBranches = [];
-    if (linearChain.length > 1) {
-      const collectedIds = new Set(linearChain.map(c => c._pokemonId));
-      while (j < cardElements.length) {
-        const next = cardElements[j];
-        const evo = state.evolutions && state.evolutions[next._pokemonId];
-        if (next._evoStage > 1 && evo && evo.from === baseId && !collectedIds.has(next._pokemonId)) {
-          siblingBranches.push(next);
-          collectedIds.add(next._pokemonId);
-          j++;
-        } else break;
+  // Helper to check if subtree is linear
+  function isLinearSubtree(node) {
+    if (node.children.length === 0) return true;
+    if (node.children.length === 1) return isLinearSubtree(node.children[0]);
+    return false;
+  }
+
+  // Recursive function to render a node
+  function renderEvoNode(node) {
+    if (isLinearSubtree(node)) {
+      // Linear chain: card1 -> card2 -> card3
+      const chain = [];
+      let curr = node;
+      while (curr) {
+        chain.push(curr.card);
+        curr = curr.children[0];
       }
-    }
 
-    const isBranching = siblingBranches.length > 0;
-    const isChain = linearChain.length > 1;
+      if (chain.length === 1) {
+        return chain[0];
+      }
 
-    if (isBranching) {
-      // Branching: base → [branch1, branch2, branch3 stacked]
-      const allBranches = [...linearChain.slice(1), ...siblingBranches];
+      const row = document.createElement('div');
+      row.className = 'evo-chain-row';
+      chain.forEach((card, idx) => {
+        if (idx > 0) {
+          const arrow = document.createElement('div');
+          arrow.className = 'evo-arrow';
+          arrow.textContent = '→';
+          row.appendChild(arrow);
+        }
+        row.appendChild(card);
+      });
+      return row;
+    } else {
+      // Branching: card -> [ child1_subtree, child2_subtree ] stacked vertically
       const row = document.createElement('div');
       row.className = 'evo-chain-row evo-chain-branching';
 
-      row.appendChild(baseCard);
+      row.appendChild(node.card);
 
       const arrow = document.createElement('div');
       arrow.className = 'evo-arrow';
@@ -1015,34 +1034,22 @@ function renderChecklistCards() {
 
       const branchContainer = document.createElement('div');
       branchContainer.className = 'evo-branches';
-      allBranches.forEach(c => branchContainer.appendChild(c));
-      row.appendChild(branchContainer);
-
-      checklistGrid.appendChild(row);
-      i = j;
-
-    } else if (isChain) {
-      // Linear: A → B → C
-      const row = document.createElement('div');
-      row.className = 'evo-chain-row';
-      linearChain.forEach((c, idx) => {
-        if (idx > 0) {
-          const arrow = document.createElement('div');
-          arrow.className = 'evo-arrow';
-          arrow.textContent = '→';
-          row.appendChild(arrow);
-        }
-        row.appendChild(c);
+      
+      node.children.forEach(child => {
+        const childRendered = renderEvoNode(child);
+        branchContainer.appendChild(childRendered);
       });
-      checklistGrid.appendChild(row);
-      i = j;
 
-    } else {
-      checklistGrid.appendChild(baseCard);
-      i++;
+      row.appendChild(branchContainer);
+      return row;
     }
   }
 
+  // Render all roots to the grid
+  roots.forEach(root => {
+    const rendered = renderEvoNode(root);
+    checklistGrid.appendChild(rendered);
+  });
 
   checklistGrid.scrollTop = previousScroll;
 }
@@ -1617,12 +1624,16 @@ async function openTradeModal(pokemonId, pokemonName, fromGame, toGame) {
   const optionsContainer = document.getElementById('trade-options-container');
   const emptyMessage = document.getElementById('trade-empty-message');
   const confirmBtn = document.getElementById('confirm-trade-btn');
+  const trashCheckbox = document.getElementById('trade-trash-checkbox');
   
   optionsContainer.innerHTML = '';
   emptyMessage.classList.add('hidden');
   confirmBtn.disabled = true;
+  if (trashCheckbox) {
+    trashCheckbox.checked = false;
+  }
   
-  activeTradeData = { pokemonId, pokemonName, fromGame, toGame, targetPokemonId: null };
+  activeTradeData = { pokemonId, pokemonName, fromGame, toGame, targetPokemonId: null, isTrash: false };
   
   const modal = document.getElementById('trade-modal');
   modal.classList.remove('hidden');
@@ -1632,7 +1643,7 @@ async function openTradeModal(pokemonId, pokemonName, fromGame, toGame) {
     const caughtPkmnList = await res.json();
     
     if (caughtPkmnList.length === 0) {
-      emptyMessage.classList.remove('hidden');
+      syncTradeUI();
       return;
     }
     
@@ -1648,6 +1659,8 @@ async function openTradeModal(pokemonId, pokemonName, fromGame, toGame) {
       
       card.addEventListener('click', (e) => {
         e.stopPropagation();
+        if (activeTradeData.isTrash) return; // ignore selection if trading for trash
+        
         document.querySelectorAll('.trade-option-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
         
@@ -1660,9 +1673,52 @@ async function openTradeModal(pokemonId, pokemonName, fromGame, toGame) {
       
       optionsContainer.appendChild(card);
     });
+
+    syncTradeUI();
   } catch (err) {
     console.error('Error loading trade options:', err);
     optionsContainer.innerHTML = '<p class="error">Failed to load trade options.</p>';
+    syncTradeUI();
+  }
+}
+
+// Synchronize UI based on whether trash trade is selected
+function syncTradeUI() {
+  const trashCheckbox = document.getElementById('trade-trash-checkbox');
+  const optionsContainer = document.getElementById('trade-options-container');
+  const emptyMessage = document.getElementById('trade-empty-message');
+  const confirmBtn = document.getElementById('confirm-trade-btn');
+  
+  if (!activeTradeData) return;
+
+  const isTrash = trashCheckbox && trashCheckbox.checked;
+  if (isTrash) {
+    optionsContainer.style.opacity = '0.4';
+    optionsContainer.style.pointerEvents = 'none';
+    emptyMessage.classList.add('hidden');
+    confirmBtn.disabled = false;
+    activeTradeData.targetPokemonId = null;
+    activeTradeData.isTrash = true;
+  } else {
+    optionsContainer.style.opacity = '1';
+    optionsContainer.style.pointerEvents = 'auto';
+    
+    const hasOptions = optionsContainer.children.length > 0 && !optionsContainer.querySelector('.error');
+    if (!hasOptions) {
+      emptyMessage.classList.remove('hidden');
+      confirmBtn.disabled = true;
+    } else {
+      emptyMessage.classList.add('hidden');
+      const selectedRadio = optionsContainer.querySelector('input[name="trade-target-radio"]:checked');
+      if (selectedRadio) {
+        activeTradeData.targetPokemonId = parseInt(selectedRadio.value);
+        confirmBtn.disabled = false;
+      } else {
+        activeTradeData.targetPokemonId = null;
+        confirmBtn.disabled = true;
+      }
+    }
+    activeTradeData.isTrash = false;
   }
 }
 
@@ -1678,15 +1734,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeBtn = document.getElementById('close-trade-modal');
   const cancelBtn = document.getElementById('cancel-trade-btn');
   const confirmBtn = document.getElementById('confirm-trade-btn');
+  const trashCheckbox = document.getElementById('trade-trash-checkbox');
   
   if (closeBtn) closeBtn.addEventListener('click', closeTradeModal);
   if (cancelBtn) cancelBtn.addEventListener('click', closeTradeModal);
+  if (trashCheckbox) {
+    trashCheckbox.addEventListener('change', () => {
+      syncTradeUI();
+    });
+  }
   
   if (confirmBtn) {
     confirmBtn.addEventListener('click', async () => {
-      if (!activeTradeData || !activeTradeData.targetPokemonId) return;
+      if (!activeTradeData || (!activeTradeData.isTrash && !activeTradeData.targetPokemonId)) return;
       
-      const { pokemonId, targetPokemonId, fromGame, toGame } = activeTradeData;
+      const { pokemonId, targetPokemonId, fromGame, toGame, isTrash } = activeTradeData;
       
       confirmBtn.disabled = true;
       confirmBtn.textContent = 'Trading...';
@@ -1701,7 +1763,8 @@ document.addEventListener('DOMContentLoaded', () => {
             pokemon_id: pokemonId,
             target_pokemon_id: targetPokemonId,
             from_game: fromGame,
-            to_game: toGame
+            to_game: toGame,
+            is_trash: !!isTrash
           })
         });
         
@@ -1717,8 +1780,8 @@ document.addEventListener('DOMContentLoaded', () => {
               if (fromGame === state.selectedGameId) item.completed = 0;
               if (toGame === state.selectedGameId) item.completed = 1;
             }
-            // Update target Pokémon
-            if (item.pokemon_id === targetPokemonId) {
+            // Update target Pokémon (if we swapped for a real caught one)
+            if (!isTrash && targetPokemonId && item.pokemon_id === targetPokemonId) {
               item.caught_games = result.caught_games2.join(',');
               if (toGame === state.selectedGameId) item.completed = 0;
               if (fromGame === state.selectedGameId) item.completed = 1;

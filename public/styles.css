@@ -1628,6 +1628,17 @@ body {
   pointer-events: none;
 }
 
+.evo-arrow {
+  display: none;
+}
+
+.evo-branches {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
 /* ============================================================
    DESKTOP LAYOUT (≥900px)
    - Wider content area
@@ -1790,6 +1801,33 @@ body {
     opacity: 0.7;
     position: relative;
     z-index: 1;
+  }
+
+  .evo-chain-branching {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .evo-branches {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .evo-branches .evo-chain-row .checklist-card:first-child {
+    border-radius: 0;
+  }
+
+  .evo-branches .evo-chain-row .checklist-card:last-child {
+    border-radius: 0 16px 16px 0;
+  }
+
+  .evo-branches .checklist-card {
+    border-radius: 0 16px 16px 0;
   }
 
   /* Stage badges on desktop */

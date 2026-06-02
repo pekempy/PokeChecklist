@@ -192,7 +192,7 @@ async function runAudit() {
       if (pid > maxDex) continue;
 
       const resolved = resolveRequirements(game, pid, pokemonMap);
-      const dbWildEncounters = resolved.filter(r => r.action_type === 'wild' || (r.action_type === 'special' && !r.notes?.toLowerCase().includes('gift') && !r.notes?.toLowerCase().includes('fossil') && !r.notes?.toLowerCase().includes('starter')));
+      const dbWildEncounters = resolved.filter(r => r.action_type === 'CATCH');
 
       const apiEncounters = pokeApiWildMap[game] || [];
 

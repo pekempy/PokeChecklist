@@ -150,6 +150,12 @@
       <div class="modal-body">
         <p class="trade-intro">Select a Pokémon currently owned in <strong id="trade-target-game-name"></strong> to
           receive in exchange for your <strong id="trade-source-pokemon-name"></strong>:</p>
+        <div class="trash-trade-container" style="margin-bottom: 16px;">
+          <label class="tool-filter-checkbox" style="display: flex; align-items: center; gap: 10px; width: 100%; border-radius: 10px; padding: 10px 14px; background-color: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);">
+            <input type="checkbox" id="trade-trash-checkbox" style="margin: 0;">
+            <span style="font-size: 0.85rem; font-weight: 600; color: #ffffff;">Receive a Trash Pokémon (No return trade required)</span>
+          </label>
+        </div>
         <div id="trade-options-container" class="trade-options-grid">
           <!-- Populated dynamically -->
         </div>

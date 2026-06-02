@@ -328,8 +328,8 @@ app.post('/api/progress', async (req, res) => {
 
 // 4b. Trade (swap) Pokémon between games
 app.post('/api/trade_pokemon', async (req, res) => {
-  const { pokemon_id, target_pokemon_id, from_game, to_game } = req.body;
-  if (!pokemon_id || !target_pokemon_id || !from_game || !to_game) {
+  const { pokemon_id, target_pokemon_id, from_game, to_game, is_trash } = req.body;
+  if (!pokemon_id || (!is_trash && !target_pokemon_id) || !from_game || !to_game) {
     return res.status(400).json({ error: 'pokemon_id, target_pokemon_id, from_game, and to_game are required' });
   }
 
@@ -360,45 +360,46 @@ app.post('/api/trade_pokemon', async (req, res) => {
       `, [targetReqId]);
     }
 
-    // 2. Swap Target Pokémon (target_pokemon_id): To -> From
-    await run('DELETE FROM caught_pokemon WHERE game_id = ? AND pokemon_id = ?', [to_game, target_pokemon_id]);
-    await run('INSERT OR IGNORE INTO caught_pokemon (game_id, pokemon_id) VALUES (?, ?)', [from_game, target_pokemon_id]);
+    let caught_games2 = [];
+    if (!is_trash) {
+      // 2. Swap Target Pokémon (target_pokemon_id): To -> From
+      await run('DELETE FROM caught_pokemon WHERE game_id = ? AND pokemon_id = ?', [to_game, target_pokemon_id]);
+      await run('INSERT OR IGNORE INTO caught_pokemon (game_id, pokemon_id) VALUES (?, ?)', [from_game, target_pokemon_id]);
 
-    // Uncheck Target Pokémon in to_game
-    const targetToReqs = await query('SELECT id FROM requirements WHERE game_id = ? AND pokemon_id = ?', [to_game, target_pokemon_id]);
-    for (const r of targetToReqs) {
-      await run(`
-        INSERT INTO progress (requirement_id, completed, updated_at)
-        VALUES (?, 0, CURRENT_TIMESTAMP)
-        ON CONFLICT(requirement_id) DO UPDATE SET completed = 0, updated_at = CURRENT_TIMESTAMP
-      `, [r.id]);
+      // Uncheck Target Pokémon in to_game
+      const targetToReqs = await query('SELECT id FROM requirements WHERE game_id = ? AND pokemon_id = ?', [to_game, target_pokemon_id]);
+      for (const r of targetToReqs) {
+        await run(`
+          INSERT INTO progress (requirement_id, completed, updated_at)
+          VALUES (?, 0, CURRENT_TIMESTAMP)
+          ON CONFLICT(requirement_id) DO UPDATE SET completed = 0, updated_at = CURRENT_TIMESTAMP
+        `, [r.id]);
+      }
+
+      // Check Target Pokémon in from_game
+      const targetFromReqs = await query('SELECT id FROM requirements WHERE game_id = ? AND pokemon_id = ?', [from_game, target_pokemon_id]);
+      if (targetFromReqs.length > 0) {
+        const tradeReq = await query("SELECT id FROM requirements WHERE game_id = ? AND pokemon_id = ? AND action_type = 'TRADE' LIMIT 1", [from_game, target_pokemon_id]);
+        const targetReqId = tradeReq.length > 0 ? tradeReq[0].id : targetFromReqs[0].id;
+        await run(`
+          INSERT INTO progress (requirement_id, completed, updated_at)
+          VALUES (?, 1, CURRENT_TIMESTAMP)
+          ON CONFLICT(requirement_id) DO UPDATE SET completed = 1, updated_at = CURRENT_TIMESTAMP
+        `, [targetReqId]);
+      }
+
+      const caughtGames2Rows = await query('SELECT game_id FROM caught_pokemon WHERE pokemon_id = ?', [target_pokemon_id]);
+      caught_games2 = caughtGames2Rows.map(row => row.game_id);
     }
 
-    // Check Target Pokémon in from_game
-    const targetFromReqs = await query('SELECT id FROM requirements WHERE game_id = ? AND pokemon_id = ?', [from_game, target_pokemon_id]);
-    if (targetFromReqs.length > 0) {
-      const tradeReq = await query("SELECT id FROM requirements WHERE game_id = ? AND pokemon_id = ? AND action_type = 'TRADE' LIMIT 1", [from_game, target_pokemon_id]);
-      const targetReqId = tradeReq.length > 0 ? tradeReq[0].id : targetFromReqs[0].id;
-      await run(`
-        INSERT INTO progress (requirement_id, completed, updated_at)
-        VALUES (?, 1, CURRENT_TIMESTAMP)
-        ON CONFLICT(requirement_id) DO UPDATE SET completed = 1, updated_at = CURRENT_TIMESTAMP
-      `, [targetReqId]);
-    }
-
-    // 3. Retrieve updated caught games list for both Pokémon
+    // 3. Retrieve updated caught games list for source Pokémon
     const caughtGames1Rows = await query('SELECT game_id FROM caught_pokemon WHERE pokemon_id = ?', [pokemon_id]);
     const caught_games1 = caughtGames1Rows.map(row => row.game_id);
 
-    const caughtGames2Rows = await query('SELECT game_id FROM caught_pokemon WHERE pokemon_id = ?', [target_pokemon_id]);
-    const caught_games2 = caughtGames2Rows.map(row => row.game_id);
-
-    res.json({ 
-      success: true, 
-      pokemon_id, 
-      target_pokemon_id, 
-      caught_games1, 
-      caught_games2 
+    res.json({
+      success: true,
+      caught_games1,
+      caught_games2
     });
   } catch (err) {
     console.error(err);

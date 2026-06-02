@@ -253,10 +253,7 @@ export const gen1Gifts = {
 // In-game Trades for Gen 1
 export const gen1Trades = {
   yellow: {
-    122: { loc: "Route 2 (House)", notes: "Trade Clefairy -> Mr. Mime" }, // Mr. Mime
-    124: { loc: "Cerulean City (House)", notes: "Trade Poliwhirl -> Jynx" }, // Jynx
-    83: { loc: "Route 11 (Gate 2F)", notes: "Trade Spearow -> Farfetch'd" }, // Farfetch'd
-    108: { loc: "Route 18 (Gate 2F)", notes: "Trade Parasect -> Lickitung" } // Lickitung
+    122: { loc: "Route 2 (House)", notes: "Trade Clefairy -> Mr. Mime" } // Mr. Mime
   },
   red: {
     122: { loc: "Route 2 (House)", notes: "Trade Abra -> Mr. Mime" }, // Mr. Mime
@@ -337,6 +334,7 @@ export const gen1Wild = {
     147: { loc: "Safari Zone (Fishing - Super Rod)", sec: 5 }, // Dratini
     148: { loc: "Safari Zone (Fishing - Super Rod)", sec: 5 }, // Dragonair
     20: { loc: "Route 16, 17, 18 (Grass)", sec: 5 }, // Raticate
+    83: { loc: "Route 12 & 13 (Grass)", sec: 5 }, // Farfetch'd
 
     88: [{ loc: "Pokémon Mansion", sec: 7 }, { loc: "Power Plant (Electric Room)", sec: 8 }], // Grimer
     89: [{ loc: "Pokémon Mansion", sec: 7 }, { loc: "Power Plant (Electric Room)", sec: 8 }], // Muk
@@ -354,7 +352,8 @@ export const gen1Wild = {
     67: { loc: "Victory Road (Cave)", sec: 9 }, // Machoke
     75: { loc: "Victory Road (Cave)", sec: 9 }, // Graveler
 
-    132: { loc: "Cerulean Cave (B1F)", sec: 10 } // Ditto
+    132: { loc: "Cerulean Cave (B1F)", sec: 10 }, // Ditto
+    108: { loc: "Cerulean Cave (Cave)", sec: 10 } // Lickitung
   },
   red: {
     25: [{ loc: "Viridian Forest (Grass - Rare)", sec: 1 }, { loc: "Power Plant (Electric Room)", sec: 8 }], // Pikachu
@@ -426,7 +425,8 @@ export const gen1Wild = {
     67: { loc: "Victory Road (Cave)", sec: 9 }, // Machoke
     75: { loc: "Victory Road (Cave)", sec: 9 }, // Graveler
 
-    132: { loc: "Cerulean Cave (B1F)", sec: 10 } // Ditto
+    132: { loc: "Cerulean Cave (B1F)", sec: 10 }, // Ditto
+    79: { loc: "Seafoam Islands & Route 10 (Fishing)", sec: 7 } // Slowpoke
   },
   blue: {
     25: [{ loc: "Viridian Forest (Grass - Rare)", sec: 1 }, { loc: "Power Plant (Electric Room)", sec: 8 }], // Pikachu
@@ -1168,7 +1168,6 @@ export const gen3Wild = {
     353: { loc: "Mt. Pyre (Cave)", sec: 7 }, // Shuppet
     355: { loc: "Mt. Pyre (Cave)", sec: 7 }, // Duskull
     354: { loc: "Sky Pillar", sec: 10 }, // Banette
-    356: { loc: "Sky Pillar", sec: 10 }, // Dusclops
     344: { loc: "Sky Pillar", sec: 10 }, // Claydol
     358: { loc: "Mt. Pyre (Summit)", sec: 7 }, // Chimecho
     202: { loc: "Safari Zone", sec: 7 }, // Wobbuffet
@@ -1284,6 +1283,7 @@ export const gen3Wild = {
     143: { loc: "Route 12 & 16", sec: 5 }, // Snorlax
     147: { loc: "Safari Zone (Fishing - Super Rod)", sec: 5 }, // Dratini
     148: { loc: "Safari Zone (Fishing - Super Rod)", sec: 5 }, // Dragonair
+    213: { loc: "One Island (Rock Smash)", sec: 8 }, // Shuckle
     202: { loc: "Ruin Valley (Grass)", sec: 10 }, // Wobbuffet
     206: { loc: "Three Island Port (Grass)", sec: 10 }, // Dunsparce
     214: { loc: "Pattern Bush (Grass)", sec: 10 }, // Heracross
@@ -1365,6 +1365,7 @@ export const gen3Wild = {
     143: { loc: "Route 12 & 16", sec: 5 }, // Snorlax
     147: { loc: "Safari Zone (Fishing - Super Rod)", sec: 5 }, // Dratini
     148: { loc: "Safari Zone (Fishing - Super Rod)", sec: 5 }, // Dragonair
+    213: { loc: "One Island (Rock Smash)", sec: 8 }, // Shuckle
     202: { loc: "Ruin Valley (Grass)", sec: 10 }, // Wobbuffet
     206: { loc: "Three Island Port (Grass)", sec: 10 }, // Dunsparce
     214: { loc: "Pattern Bush (Grass)", sec: 10 }, // Heracross
@@ -1384,6 +1385,17 @@ function getGeneration(pokemonId) {
   if (pokemonId <= 151) return 1;
   if (pokemonId <= 251) return 2;
   return 3;
+}
+
+function getDescendantIds(pId) {
+  const list = [];
+  for (const [targetId, evo] of Object.entries(evolutions)) {
+    if (evo.from === pId) {
+      list.push(Number(targetId));
+      list.push(...getDescendantIds(Number(targetId)));
+    }
+  }
+  return list;
 }
 
 /**
@@ -1463,23 +1475,39 @@ export function resolveRequirements(gameId, pokemonId, pokemonMap, visited = new
     }
   }
 
-  // 4b. Breeding method (for baby Pokémon in Gen 2 and Gen 3)
+  // 4b. Breeding method (for baby/base Pokémon in Gen 2 and Gen 3)
   if (gameGen >= 2) {
-    const babyEvoTargetId = Object.keys(evolutions).find(key => evolutions[key].from === pokemonId);
-    if (babyEvoTargetId) {
-      const parentId = Number(babyEvoTargetId);
-      if (getGeneration(parentId) <= gameGen) {
-        const parentReqs = resolveRequirements(gameId, parentId, pokemonMap, new Set(visited));
-        const parentHasNative = parentReqs.some(r => r.action_type !== 'TRADE' || r.location_details !== 'Link Trade');
-        if (parentHasNative) {
-          const parentSecId = parentReqs.length > 0 ? Math.min(...parentReqs.map(r => r.section_id)) : 10;
+    const isBaseStage = !evolutions[pokemonId];
+    if (isBaseStage) {
+      const hasOtherNatives = results.some(r => r.action_type === 'GIFT' || r.action_type === 'TRADE' || r.action_type === 'CATCH');
+      if (!hasOtherNatives) {
+        const descendants = getDescendantIds(pokemonId);
+        const obtainableDescendants = descendants.filter(dId => {
+          if (getGeneration(dId) > gameGen) return false;
+          const reqs = resolveRequirements(gameId, dId, pokemonMap, new Set(visited));
+          return reqs.some(r => r.action_type !== 'TRADE' || r.location_details !== 'Link Trade');
+        });
+
+        if (obtainableDescendants.length > 0) {
+          const parentNames = obtainableDescendants.map(dId => pokemonMap[dId].name);
+          const parentNamesStr = parentNames.join('/');
+
+          let minSecId = 10;
+          obtainableDescendants.forEach(dId => {
+            const reqs = resolveRequirements(gameId, dId, pokemonMap, new Set(visited));
+            const secIds = reqs.filter(r => r.action_type !== 'TRADE' || r.location_details !== 'Link Trade').map(r => r.section_id);
+            if (secIds.length > 0) {
+              minSecId = Math.min(minSecId, ...secIds);
+            }
+          });
+
           const daycareSec = gameId.includes('firered') || gameId.includes('leafgreen') ? 10 : 3;
-          const resolvedSec = Math.max(parentSecId, daycareSec);
-          const parentName = pokemonMap[parentId].name;
+          const resolvedSec = Math.max(minSecId, daycareSec);
+
           push({
             action_type: 'BREED',
-            location_details: `Breed ${parentName}`,
-            notes: `Breed ${parentName} at the Day Care.`,
+            location_details: `Breed ${parentNamesStr}`,
+            notes: `Breed ${parentNamesStr} at the Day Care.`,
             section_id: resolvedSec
           });
         }

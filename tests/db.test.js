@@ -35,6 +35,60 @@ export default {
       assert.strictEqual(fireredReqs[0].cnt, 386, "FireRed should have exactly 386 unique Pokémon in requirements.");
     },
 
+    "Verify Yellow/Red/Blue requirements for Farfetch'd, Lickitung, Mr. Mime, Jynx, and Vulpix": async () => {
+      // Farfetch'd (83)
+      const farfetchdYellow = await query("SELECT * FROM requirements WHERE game_id = 'yellow' AND pokemon_id = 83");
+      assert.strictEqual(farfetchdYellow.length, 1);
+      assert.strictEqual(farfetchdYellow[0].action_type, 'CATCH');
+      assert.strictEqual(farfetchdYellow[0].location_details, 'Route 12 & 13 (Grass)');
+
+      const farfetchdRed = await query("SELECT * FROM requirements WHERE game_id = 'red' AND pokemon_id = 83");
+      assert.strictEqual(farfetchdRed.length, 1);
+      assert.strictEqual(farfetchdRed[0].action_type, 'TRADE');
+      assert.strictEqual(farfetchdRed[0].location_details, 'Vermilion City (House)');
+
+      // Lickitung (108)
+      const lickitungYellow = await query("SELECT * FROM requirements WHERE game_id = 'yellow' AND pokemon_id = 108");
+      assert.strictEqual(lickitungYellow.length, 1);
+      assert.strictEqual(lickitungYellow[0].action_type, 'CATCH');
+      assert.strictEqual(lickitungYellow[0].location_details, 'Cerulean Cave (Cave)');
+
+      const lickitungRed = await query("SELECT * FROM requirements WHERE game_id = 'red' AND pokemon_id = 108");
+      assert.strictEqual(lickitungRed.length, 1);
+      assert.strictEqual(lickitungRed[0].action_type, 'TRADE');
+      assert.strictEqual(lickitungRed[0].location_details, 'Route 18 (Gate 2F)');
+
+      // Mr. Mime (122)
+      const mrMimeYellow = await query("SELECT * FROM requirements WHERE game_id = 'yellow' AND pokemon_id = 122");
+      assert.strictEqual(mrMimeYellow.length, 1);
+      assert.strictEqual(mrMimeYellow[0].action_type, 'TRADE');
+      assert.strictEqual(mrMimeYellow[0].notes, 'Trade Clefairy -> Mr. Mime');
+
+      const mrMimeRed = await query("SELECT * FROM requirements WHERE game_id = 'red' AND pokemon_id = 122");
+      assert.strictEqual(mrMimeRed.length, 1);
+      assert.strictEqual(mrMimeRed[0].action_type, 'TRADE');
+      assert.strictEqual(mrMimeRed[0].notes, 'Trade Abra -> Mr. Mime');
+
+      // Jynx (124)
+      const jynxYellow = await query("SELECT * FROM requirements WHERE game_id = 'yellow' AND pokemon_id = 124");
+      assert.strictEqual(jynxYellow.length, 1);
+      assert.strictEqual(jynxYellow[0].action_type, 'TRADE');
+      assert.strictEqual(jynxYellow[0].location_details, 'Link Trade');
+      assert.strictEqual(jynxYellow[0].notes, 'Not natively available in yellow — obtain by trading from another version.');
+
+      const jynxRed = await query("SELECT * FROM requirements WHERE game_id = 'red' AND pokemon_id = 124");
+      assert.strictEqual(jynxRed.length, 1);
+      assert.strictEqual(jynxRed[0].action_type, 'TRADE');
+      assert.strictEqual(jynxRed[0].location_details, 'Cerulean City (House)');
+
+      // Vulpix (37)
+      const vulpixYellow = await query("SELECT * FROM requirements WHERE game_id = 'yellow' AND pokemon_id = 37");
+      assert.strictEqual(vulpixYellow.length, 1);
+      assert.strictEqual(vulpixYellow[0].action_type, 'TRADE');
+      assert.strictEqual(vulpixYellow[0].location_details, 'Link Trade');
+      assert.strictEqual(vulpixYellow[0].notes, 'Not natively available in yellow — obtain by trading from another version.');
+    },
+
     "Verify redundancy blank database file exists": async () => {
       const blankPath = path.join(projectRoot, 'pokemon_checklist_blank.db');
       assert.ok(fs.existsSync(blankPath), "pokemon_checklist_blank.db should exist.");

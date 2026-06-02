@@ -24,6 +24,69 @@ pokemonMaster.forEach(p => {
   pokemonMap[p.id] = p;
 });
 
+// Load detailed data for enrichment
+const detailedData = JSON.parse(
+  fs.readFileSync(path.join(__dirname, 'pokemon_detailed_data_386.json'), 'utf8')
+);
+const detailedDataMap = {};
+detailedData.forEach(p => {
+  detailedDataMap[p.id] = p;
+});
+
+function matchLocation(dbLoc, apiLoc) {
+  const dbClean = dbLoc.toLowerCase().replace(/[^a-z0-9 ]/g, ' ');
+  const apiClean = apiLoc.toLowerCase().replace(/[^a-z0-9 ]/g, ' ');
+  
+  const dbWords = dbClean.split(/\s+/).filter(Boolean);
+  const apiWords = apiClean.split(/\s+/).filter(Boolean);
+  
+  // Strict Route matching
+  const dbRouteIdx = dbWords.indexOf('route');
+  const apiRouteIdx = apiWords.indexOf('route');
+  if (dbRouteIdx !== -1 && apiRouteIdx !== -1) {
+    const dbRouteNum = dbWords[dbRouteIdx + 1];
+    const apiRouteNum = apiWords[apiRouteIdx + 1];
+    if (dbRouteNum && apiRouteNum) {
+      return dbRouteNum === apiRouteNum;
+    }
+  }
+  
+  // Specific place matchers
+  if (dbClean.includes('safari') && apiClean.includes('safari')) return true;
+  if (dbClean.includes('mansion') && apiClean.includes('mansion')) return true;
+  if (dbClean.includes('seafoam') && apiClean.includes('seafoam')) return true;
+  if (dbClean.includes('power plant') && apiClean.includes('power plant')) return true;
+  if (dbClean.includes('victory road') && apiClean.includes('victory road')) return true;
+  if (dbClean.includes('cerulean cave') && apiClean.includes('cerulean-cave')) return true;
+  if (dbClean.includes('cerulean cave') && apiClean.includes('unknown dungeon')) return true;
+  
+  // Fallback: check overlap of words
+  const ignore = ['and', 'the', 'a', 'or', 'of', 'in', 'f', 'b1f', 'b2f', 'b3f', 'b4f'];
+  const dbSigs = dbWords.filter(w => !ignore.includes(w));
+  const apiSigs = apiWords.filter(w => !ignore.includes(w));
+  
+  return dbSigs.some(w => apiSigs.includes(w));
+}
+
+function getEncounterDetails(gameId, pokemonId, dbLocation) {
+  const pData = detailedDataMap[pokemonId];
+  if (!pData) return null;
+  const gameData = pData.obtainable_in[gameId];
+  if (!gameData || !gameData.obtainable) return null;
+  
+  const matches = gameData.methods.filter(m => {
+    if (m.type !== 'CATCH' && m.type !== 'GIFT') return false;
+    return matchLocation(dbLocation, m.location);
+  });
+  
+  if (matches.length === 0) return null;
+  
+  return matches.map(m => {
+    const methodStr = m.method.charAt(0).toUpperCase() + m.method.slice(1).replace('-', ' ');
+    return `${methodStr} [Lvl ${m.level_range}, ${m.chance}%]`;
+  }).join(' | ');
+}
+
 export function setDatabasePath(newPath) {
   // Close old database connection if open
   if (db) {
@@ -302,20 +365,28 @@ async function seedMissingData() {
         const key = `${game.id}|${pid}|${resolved.action_type}|${resolved.location_details}`;
         activeReqKeys.add(key);
 
+        let finalNotes = resolved.notes;
+        if (resolved.action_type === 'CATCH' || resolved.action_type === 'GIFT') {
+          const apiNotes = getEncounterDetails(game.id, pid, resolved.location_details);
+          if (apiNotes) {
+            finalNotes = apiNotes;
+          }
+        }
+
         const existing = existingMap[key];
         if (existing) {
-          if (existing.section_id !== absoluteSecId || existing.notes !== resolved.notes) {
+          if (existing.section_id !== absoluteSecId || existing.notes !== finalNotes) {
             await run(`
               UPDATE requirements 
               SET section_id = ?, notes = ?
               WHERE id = ?
-            `, [absoluteSecId, resolved.notes, existing.id]);
+            `, [absoluteSecId, finalNotes, existing.id]);
           }
         } else {
           await run(`
             INSERT INTO requirements (game_id, section_id, pokemon_id, action_type, location_details, notes)
             VALUES (?, ?, ?, ?, ?, ?)
-          `, [game.id, absoluteSecId, pid, resolved.action_type, resolved.location_details, resolved.notes]);
+          `, [game.id, absoluteSecId, pid, resolved.action_type, resolved.location_details, finalNotes]);
         }
       }
     }

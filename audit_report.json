@@ -1,5 +1,1295 @@
 {
-  "locationMismatches": [],
-  "falsePositives": [],
+  "locationMismatches": [
+    {
+      "pokemonId": 27,
+      "name": "Sandshrew",
+      "game": "blue",
+      "dbLocation": "Route 3 & 4 (Grass)",
+      "cleanName": "kanto-route-3",
+      "pokeApiAreas": [
+        "kanto-route-4-area",
+        "kanto-route-8-area",
+        "kanto-route-9-area",
+        "kanto-route-10-area",
+        "kanto-route-11-area",
+        "kanto-route-23-area"
+      ]
+    },
+    {
+      "pokemonId": 54,
+      "name": "Psyduck",
+      "game": "blue",
+      "dbLocation": "Seafoam Islands (Cave)",
+      "cleanName": "seafoam-isl-s",
+      "pokeApiAreas": [
+        "seafoam-islands-1f",
+        "seafoam-islands-b1f",
+        "seafoam-islands-b2f",
+        "seafoam-islands-b3f",
+        "seafoam-islands-b4f",
+        "cerulean-city-area",
+        "kanto-route-24-area",
+        "kanto-route-25-area",
+        "kanto-safari-zone-middle",
+        "kanto-safari-zone-area-1-east",
+        "kanto-safari-zone-area-2-north",
+        "kanto-safari-zone-area-3-west"
+      ]
+    },
+    {
+      "pokemonId": 61,
+      "name": "Poliwhirl",
+      "game": "yellow",
+      "dbLocation": "Route 10 (Surfing)",
+      "cleanName": "kanto-route-10",
+      "pokeApiAreas": [
+        "kanto-route-22-area",
+        "kanto-route-23-area"
+      ]
+    },
+    {
+      "pokemonId": 72,
+      "name": "Tentacool",
+      "game": "red",
+      "dbLocation": "Route 19 (Surfing)",
+      "cleanName": "kanto-route-19",
+      "pokeApiAreas": [
+        "kanto-route-12-area",
+        "kanto-sea-route-19-area",
+        "kanto-sea-route-20-area",
+        "viridian-city-area",
+        "pallet-town-area",
+        "kanto-route-13-area",
+        "kanto-route-17-area",
+        "kanto-route-18-area",
+        "kanto-sea-route-21-area"
+      ]
+    },
+    {
+      "pokemonId": 72,
+      "name": "Tentacool",
+      "game": "blue",
+      "dbLocation": "Route 19 (Surfing)",
+      "cleanName": "kanto-route-19",
+      "pokeApiAreas": [
+        "kanto-route-12-area",
+        "kanto-sea-route-19-area",
+        "kanto-sea-route-20-area",
+        "viridian-city-area",
+        "pallet-town-area",
+        "kanto-route-13-area",
+        "kanto-route-17-area",
+        "kanto-route-18-area",
+        "kanto-sea-route-21-area"
+      ]
+    },
+    {
+      "pokemonId": 72,
+      "name": "Tentacool",
+      "game": "yellow",
+      "dbLocation": "Route 19 (Surfing)",
+      "cleanName": "kanto-route-19",
+      "pokeApiAreas": [
+        "seafoam-islands-b3f",
+        "seafoam-islands-b4f",
+        "kanto-sea-route-19-area",
+        "kanto-sea-route-20-area",
+        "cinnabar-island-area",
+        "vermilion-city-area",
+        "pallet-town-area",
+        "kanto-route-11-area",
+        "kanto-route-13-area",
+        "kanto-route-17-area",
+        "kanto-route-18-area",
+        "kanto-sea-route-21-area",
+        "vermilion-city-ss-anne-dock"
+      ]
+    },
+    {
+      "pokemonId": 72,
+      "name": "Tentacool",
+      "game": "gold",
+      "dbLocation": "Route 40 & 41 (Surfing)",
+      "cleanName": "johto-route-40",
+      "pokeApiAreas": [
+        "new-bark-town-area",
+        "cherrygrove-city-area",
+        "johto-route-32-area",
+        "union-cave-b2f",
+        "johto-route-34-area",
+        "olivine-city-area",
+        "johto-sea-route-40-area",
+        "johto-sea-route-41-area",
+        "whirl-islands-1f",
+        "cianwood-city-area",
+        "kanto-route-12-area",
+        "kanto-sea-route-19-area",
+        "kanto-sea-route-20-area",
+        "cinnabar-island-area",
+        "vermilion-city-area",
+        "pallet-town-area",
+        "kanto-route-26-area",
+        "kanto-route-27-area",
+        "kanto-route-13-area",
+        "kanto-sea-route-21-area",
+        "vermilion-city-ss-anne-dock"
+      ]
+    },
+    {
+      "pokemonId": 72,
+      "name": "Tentacool",
+      "game": "silver",
+      "dbLocation": "Route 40 & 41 (Surfing)",
+      "cleanName": "johto-route-40",
+      "pokeApiAreas": [
+        "new-bark-town-area",
+        "cherrygrove-city-area",
+        "johto-route-32-area",
+        "union-cave-b2f",
+        "johto-route-34-area",
+        "olivine-city-area",
+        "johto-sea-route-40-area",
+        "johto-sea-route-41-area",
+        "whirl-islands-1f",
+        "cianwood-city-area",
+        "kanto-route-12-area",
+        "kanto-sea-route-19-area",
+        "kanto-sea-route-20-area",
+        "cinnabar-island-area",
+        "vermilion-city-area",
+        "pallet-town-area",
+        "kanto-route-26-area",
+        "kanto-route-27-area",
+        "kanto-route-13-area",
+        "kanto-sea-route-21-area",
+        "vermilion-city-ss-anne-dock"
+      ]
+    },
+    {
+      "pokemonId": 72,
+      "name": "Tentacool",
+      "game": "crystal",
+      "dbLocation": "Route 40 & 41 (Surfing)",
+      "cleanName": "johto-route-40",
+      "pokeApiAreas": [
+        "new-bark-town-area",
+        "cherrygrove-city-area",
+        "johto-route-32-area",
+        "union-cave-b2f",
+        "johto-route-34-area",
+        "olivine-city-area",
+        "johto-sea-route-40-area",
+        "johto-sea-route-41-area",
+        "whirl-islands-1f",
+        "cianwood-city-area",
+        "kanto-route-12-area",
+        "kanto-sea-route-19-area",
+        "kanto-sea-route-20-area",
+        "cinnabar-island-area",
+        "vermilion-city-area",
+        "pallet-town-area",
+        "kanto-route-26-area",
+        "kanto-route-27-area",
+        "kanto-route-13-area",
+        "kanto-sea-route-21-area",
+        "vermilion-city-ss-anne-dock"
+      ]
+    },
+    {
+      "pokemonId": 72,
+      "name": "Tentacool",
+      "game": "firered",
+      "dbLocation": "Route 19 (Surfing)",
+      "cleanName": "kanto-route-19",
+      "pokeApiAreas": [
+        "kanto-route-12-area",
+        "kanto-sea-route-19-area",
+        "kanto-sea-route-20-area",
+        "cinnabar-island-area",
+        "cerulean-city-area",
+        "vermilion-city-area",
+        "pallet-town-area",
+        "kanto-route-4-area",
+        "kanto-route-10-area",
+        "kanto-route-11-area",
+        "kanto-route-13-area",
+        "kanto-sea-route-21-area",
+        "kanto-route-24-area",
+        "ss-anne-area",
+        "icefall-cave-waterfall",
+        "kindle-road-area",
+        "treasure-beach-area",
+        "bond-bridge-area",
+        "resort-gorgeous-area",
+        "water-labyrinth-area",
+        "five-isle-meadow-area",
+        "memorial-pillar-area",
+        "outcast-island-area",
+        "green-path-area",
+        "water-path-area",
+        "trainer-tower-area",
+        "tanoby-ruins-area",
+        "one-island-area",
+        "five-island-area"
+      ]
+    },
+    {
+      "pokemonId": 72,
+      "name": "Tentacool",
+      "game": "leafgreen",
+      "dbLocation": "Route 19 (Surfing)",
+      "cleanName": "kanto-route-19",
+      "pokeApiAreas": [
+        "kanto-route-12-area",
+        "kanto-sea-route-19-area",
+        "kanto-sea-route-20-area",
+        "cinnabar-island-area",
+        "cerulean-city-area",
+        "vermilion-city-area",
+        "pallet-town-area",
+        "kanto-route-4-area",
+        "kanto-route-10-area",
+        "kanto-route-11-area",
+        "kanto-route-13-area",
+        "kanto-sea-route-21-area",
+        "kanto-route-24-area",
+        "ss-anne-area",
+        "icefall-cave-waterfall",
+        "kindle-road-area",
+        "treasure-beach-area",
+        "bond-bridge-area",
+        "resort-gorgeous-area",
+        "water-labyrinth-area",
+        "five-isle-meadow-area",
+        "memorial-pillar-area",
+        "outcast-island-area",
+        "green-path-area",
+        "water-path-area",
+        "trainer-tower-area",
+        "tanoby-ruins-area",
+        "one-island-area",
+        "five-island-area"
+      ]
+    },
+    {
+      "pokemonId": 73,
+      "name": "Tentacruel",
+      "game": "gold",
+      "dbLocation": "Route 40 & 41 (Surfing)",
+      "cleanName": "johto-route-40",
+      "pokeApiAreas": [
+        "new-bark-town-area",
+        "cherrygrove-city-area",
+        "johto-route-32-area",
+        "union-cave-b2f",
+        "johto-route-34-area",
+        "olivine-city-area",
+        "johto-sea-route-40-area",
+        "johto-sea-route-41-area",
+        "whirl-islands-1f",
+        "whirl-islands-b2f",
+        "whirl-islands-b3f",
+        "cianwood-city-area",
+        "kanto-route-12-area",
+        "kanto-sea-route-19-area",
+        "kanto-sea-route-20-area",
+        "cinnabar-island-area",
+        "vermilion-city-area",
+        "pallet-town-area",
+        "kanto-route-26-area",
+        "kanto-route-27-area",
+        "kanto-route-13-area",
+        "kanto-sea-route-21-area",
+        "vermilion-city-ss-anne-dock"
+      ]
+    },
+    {
+      "pokemonId": 73,
+      "name": "Tentacruel",
+      "game": "silver",
+      "dbLocation": "Route 40 & 41 (Surfing)",
+      "cleanName": "johto-route-40",
+      "pokeApiAreas": [
+        "new-bark-town-area",
+        "cherrygrove-city-area",
+        "johto-route-32-area",
+        "union-cave-b2f",
+        "johto-route-34-area",
+        "olivine-city-area",
+        "johto-sea-route-40-area",
+        "johto-sea-route-41-area",
+        "whirl-islands-1f",
+        "whirl-islands-b2f",
+        "whirl-islands-b3f",
+        "cianwood-city-area",
+        "kanto-route-12-area",
+        "kanto-sea-route-19-area",
+        "kanto-sea-route-20-area",
+        "cinnabar-island-area",
+        "vermilion-city-area",
+        "pallet-town-area",
+        "kanto-route-26-area",
+        "kanto-route-27-area",
+        "kanto-route-13-area",
+        "kanto-sea-route-21-area",
+        "vermilion-city-ss-anne-dock"
+      ]
+    },
+    {
+      "pokemonId": 73,
+      "name": "Tentacruel",
+      "game": "crystal",
+      "dbLocation": "Route 40 & 41 (Surfing)",
+      "cleanName": "johto-route-40",
+      "pokeApiAreas": [
+        "new-bark-town-area",
+        "cherrygrove-city-area",
+        "johto-route-32-area",
+        "union-cave-b2f",
+        "johto-route-34-area",
+        "olivine-city-area",
+        "johto-sea-route-40-area",
+        "johto-sea-route-41-area",
+        "whirl-islands-1f",
+        "whirl-islands-b2f",
+        "whirl-islands-b3f",
+        "cianwood-city-area",
+        "kanto-route-12-area",
+        "kanto-sea-route-19-area",
+        "kanto-sea-route-20-area",
+        "cinnabar-island-area",
+        "vermilion-city-area",
+        "pallet-town-area",
+        "kanto-route-26-area",
+        "kanto-route-27-area",
+        "kanto-route-13-area",
+        "kanto-sea-route-21-area",
+        "vermilion-city-ss-anne-dock"
+      ]
+    },
+    {
+      "pokemonId": 86,
+      "name": "Seel",
+      "game": "red",
+      "dbLocation": "Seafoam Islands (Cave)",
+      "cleanName": "seafoam-isl-s",
+      "pokeApiAreas": [
+        "seafoam-islands-1f",
+        "seafoam-islands-b1f",
+        "seafoam-islands-b2f",
+        "seafoam-islands-b3f",
+        "seafoam-islands-b4f",
+        "cinnabar-island-cinnabar-lab"
+      ]
+    },
+    {
+      "pokemonId": 86,
+      "name": "Seel",
+      "game": "blue",
+      "dbLocation": "Seafoam Islands (Cave)",
+      "cleanName": "seafoam-isl-s",
+      "pokeApiAreas": [
+        "seafoam-islands-1f",
+        "seafoam-islands-b1f",
+        "seafoam-islands-b2f",
+        "seafoam-islands-b3f",
+        "seafoam-islands-b4f",
+        "cinnabar-island-cinnabar-lab"
+      ]
+    },
+    {
+      "pokemonId": 86,
+      "name": "Seel",
+      "game": "yellow",
+      "dbLocation": "Seafoam Islands (Cave)",
+      "cleanName": "seafoam-isl-s",
+      "pokeApiAreas": [
+        "seafoam-islands-b1f",
+        "seafoam-islands-b2f",
+        "seafoam-islands-b3f",
+        "seafoam-islands-b4f"
+      ]
+    },
+    {
+      "pokemonId": 86,
+      "name": "Seel",
+      "game": "gold",
+      "dbLocation": "Whirl Islands",
+      "cleanName": "whirl-isl-s",
+      "pokeApiAreas": [
+        "whirl-islands-1f",
+        "whirl-islands-b1f",
+        "whirl-islands-b2f",
+        "whirl-islands-b3f"
+      ]
+    },
+    {
+      "pokemonId": 86,
+      "name": "Seel",
+      "game": "silver",
+      "dbLocation": "Whirl Islands",
+      "cleanName": "whirl-isl-s",
+      "pokeApiAreas": [
+        "whirl-islands-1f",
+        "whirl-islands-b1f",
+        "whirl-islands-b2f",
+        "whirl-islands-b3f"
+      ]
+    },
+    {
+      "pokemonId": 86,
+      "name": "Seel",
+      "game": "crystal",
+      "dbLocation": "Whirl Islands",
+      "cleanName": "whirl-isl-s",
+      "pokeApiAreas": [
+        "whirl-islands-1f",
+        "whirl-islands-b1f",
+        "whirl-islands-b2f",
+        "whirl-islands-b3f"
+      ]
+    },
+    {
+      "pokemonId": 86,
+      "name": "Seel",
+      "game": "firered",
+      "dbLocation": "Seafoam Islands",
+      "cleanName": "seafoam-isl-s",
+      "pokeApiAreas": [
+        "seafoam-islands-b1f",
+        "seafoam-islands-b2f",
+        "seafoam-islands-b3f",
+        "seafoam-islands-b4f",
+        "icefall-cave-entrance",
+        "icefall-cave-1f",
+        "icefall-cave-b1f",
+        "icefall-cave-waterfall"
+      ]
+    },
+    {
+      "pokemonId": 86,
+      "name": "Seel",
+      "game": "leafgreen",
+      "dbLocation": "Seafoam Islands",
+      "cleanName": "seafoam-isl-s",
+      "pokeApiAreas": [
+        "seafoam-islands-b1f",
+        "seafoam-islands-b2f",
+        "seafoam-islands-b3f",
+        "seafoam-islands-b4f",
+        "icefall-cave-entrance",
+        "icefall-cave-1f",
+        "icefall-cave-b1f",
+        "icefall-cave-waterfall"
+      ]
+    },
+    {
+      "pokemonId": 87,
+      "name": "Dewgong",
+      "game": "red",
+      "dbLocation": "Seafoam Islands (Cave)",
+      "cleanName": "seafoam-isl-s",
+      "pokeApiAreas": [
+        "seafoam-islands-b1f",
+        "seafoam-islands-b3f"
+      ]
+    },
+    {
+      "pokemonId": 87,
+      "name": "Dewgong",
+      "game": "blue",
+      "dbLocation": "Seafoam Islands (Cave)",
+      "cleanName": "seafoam-isl-s",
+      "pokeApiAreas": [
+        "seafoam-islands-b1f",
+        "seafoam-islands-b3f"
+      ]
+    },
+    {
+      "pokemonId": 87,
+      "name": "Dewgong",
+      "game": "yellow",
+      "dbLocation": "Seafoam Islands (Cave)",
+      "cleanName": "seafoam-isl-s",
+      "pokeApiAreas": [
+        "seafoam-islands-b3f",
+        "seafoam-islands-b4f",
+        "cinnabar-island-cinnabar-lab"
+      ]
+    },
+    {
+      "pokemonId": 87,
+      "name": "Dewgong",
+      "game": "firered",
+      "dbLocation": "Seafoam Islands",
+      "cleanName": "seafoam-isl-s",
+      "pokeApiAreas": [
+        "seafoam-islands-b3f",
+        "seafoam-islands-b4f",
+        "icefall-cave-entrance",
+        "icefall-cave-waterfall"
+      ]
+    },
+    {
+      "pokemonId": 87,
+      "name": "Dewgong",
+      "game": "leafgreen",
+      "dbLocation": "Seafoam Islands",
+      "cleanName": "seafoam-isl-s",
+      "pokeApiAreas": [
+        "seafoam-islands-b3f",
+        "seafoam-islands-b4f",
+        "icefall-cave-entrance",
+        "icefall-cave-waterfall"
+      ]
+    },
+    {
+      "pokemonId": 90,
+      "name": "Shellder",
+      "game": "yellow",
+      "dbLocation": "Vermilion City Harbor (Fishing - Super Rod)",
+      "cleanName": "vermilion-city-harbor",
+      "pokeApiAreas": [
+        "kanto-route-17-area",
+        "kanto-route-18-area",
+        "vermilion-city-ss-anne-dock"
+      ]
+    },
+    {
+      "pokemonId": 90,
+      "name": "Shellder",
+      "game": "gold",
+      "dbLocation": "Route 41 (Fishing - Good Rod)",
+      "cleanName": "johto-route-41",
+      "pokeApiAreas": [
+        "new-bark-town-area",
+        "johto-sea-route-41-area",
+        "kanto-sea-route-20-area",
+        "cinnabar-island-area",
+        "vermilion-city-area",
+        "pallet-town-area",
+        "kanto-route-26-area",
+        "kanto-route-27-area",
+        "kanto-sea-route-21-area",
+        "vermilion-city-ss-anne-dock"
+      ]
+    },
+    {
+      "pokemonId": 90,
+      "name": "Shellder",
+      "game": "silver",
+      "dbLocation": "Route 41 (Fishing - Good Rod)",
+      "cleanName": "johto-route-41",
+      "pokeApiAreas": [
+        "new-bark-town-area",
+        "johto-sea-route-41-area",
+        "kanto-sea-route-20-area",
+        "cinnabar-island-area",
+        "vermilion-city-area",
+        "pallet-town-area",
+        "kanto-route-26-area",
+        "kanto-route-27-area",
+        "kanto-sea-route-21-area",
+        "vermilion-city-ss-anne-dock"
+      ]
+    },
+    {
+      "pokemonId": 90,
+      "name": "Shellder",
+      "game": "crystal",
+      "dbLocation": "Route 41 (Fishing - Good Rod)",
+      "cleanName": "johto-route-41",
+      "pokeApiAreas": [
+        "new-bark-town-area",
+        "johto-sea-route-41-area",
+        "kanto-sea-route-20-area",
+        "cinnabar-island-area",
+        "vermilion-city-area",
+        "pallet-town-area",
+        "kanto-route-26-area",
+        "kanto-route-27-area",
+        "kanto-sea-route-21-area",
+        "vermilion-city-ss-anne-dock"
+      ]
+    },
+    {
+      "pokemonId": 98,
+      "name": "Krabby",
+      "game": "yellow",
+      "dbLocation": "Seafoam Islands (Cave)",
+      "cleanName": "seafoam-isl-s",
+      "pokeApiAreas": [
+        "seafoam-islands-1f",
+        "seafoam-islands-b1f",
+        "seafoam-islands-b2f",
+        "seafoam-islands-b3f",
+        "seafoam-islands-b4f",
+        "kanto-route-10-area",
+        "kanto-route-25-area"
+      ]
+    },
+    {
+      "pokemonId": 98,
+      "name": "Krabby",
+      "game": "yellow",
+      "dbLocation": "Seafoam Islands (Fishing - Super Rod)",
+      "cleanName": "seafoam-isl-s",
+      "pokeApiAreas": [
+        "seafoam-islands-1f",
+        "seafoam-islands-b1f",
+        "seafoam-islands-b2f",
+        "seafoam-islands-b3f",
+        "seafoam-islands-b4f",
+        "kanto-route-10-area",
+        "kanto-route-25-area"
+      ]
+    },
+    {
+      "pokemonId": 98,
+      "name": "Krabby",
+      "game": "gold",
+      "dbLocation": "Route 40 (Rock Smash)",
+      "cleanName": "johto-route-40",
+      "pokeApiAreas": [
+        "cherrygrove-city-area",
+        "union-cave-b2f",
+        "johto-route-34-area",
+        "olivine-city-area",
+        "johto-sea-route-40-area",
+        "whirl-islands-1f",
+        "whirl-islands-b1f",
+        "whirl-islands-b2f",
+        "whirl-islands-b3f",
+        "cianwood-city-area",
+        "dark-cave-violet-city-entrance",
+        "kanto-sea-route-19-area"
+      ]
+    },
+    {
+      "pokemonId": 98,
+      "name": "Krabby",
+      "game": "silver",
+      "dbLocation": "Route 40 (Rock Smash)",
+      "cleanName": "johto-route-40",
+      "pokeApiAreas": [
+        "cherrygrove-city-area",
+        "union-cave-b2f",
+        "johto-route-34-area",
+        "olivine-city-area",
+        "johto-sea-route-40-area",
+        "whirl-islands-1f",
+        "whirl-islands-b1f",
+        "whirl-islands-b2f",
+        "whirl-islands-b3f",
+        "cianwood-city-area",
+        "dark-cave-violet-city-entrance",
+        "kanto-sea-route-19-area"
+      ]
+    },
+    {
+      "pokemonId": 98,
+      "name": "Krabby",
+      "game": "crystal",
+      "dbLocation": "Route 40 (Rock Smash)",
+      "cleanName": "johto-route-40",
+      "pokeApiAreas": [
+        "cherrygrove-city-area",
+        "union-cave-b2f",
+        "johto-route-34-area",
+        "olivine-city-area",
+        "johto-sea-route-40-area",
+        "whirl-islands-1f",
+        "whirl-islands-b1f",
+        "whirl-islands-b2f",
+        "whirl-islands-b3f",
+        "cianwood-city-area",
+        "dark-cave-violet-city-entrance",
+        "kanto-sea-route-19-area"
+      ]
+    },
+    {
+      "pokemonId": 99,
+      "name": "Kingler",
+      "game": "leafgreen",
+      "dbLocation": "Route 19 (Fishing - Super Rod)",
+      "cleanName": "kanto-route-19",
+      "pokeApiAreas": [
+        "kanto-sea-route-19-area",
+        "kanto-sea-route-20-area",
+        "pallet-town-area",
+        "kanto-sea-route-21-area",
+        "icefall-cave-waterfall",
+        "kindle-road-area",
+        "treasure-beach-area",
+        "bond-bridge-area",
+        "resort-gorgeous-area",
+        "water-labyrinth-area",
+        "five-isle-meadow-area",
+        "memorial-pillar-area",
+        "outcast-island-area",
+        "green-path-area",
+        "water-path-area",
+        "trainer-tower-area",
+        "tanoby-ruins-area",
+        "one-island-area",
+        "five-island-area"
+      ]
+    },
+    {
+      "pokemonId": 114,
+      "name": "Tangela",
+      "game": "red",
+      "dbLocation": "Route 21 (Grass)",
+      "cleanName": "kanto-route-21",
+      "pokeApiAreas": [
+        "kanto-sea-route-21-area",
+        "cinnabar-island-cinnabar-lab"
+      ]
+    },
+    {
+      "pokemonId": 114,
+      "name": "Tangela",
+      "game": "blue",
+      "dbLocation": "Route 21 (Grass)",
+      "cleanName": "kanto-route-21",
+      "pokeApiAreas": [
+        "kanto-sea-route-21-area",
+        "cinnabar-island-cinnabar-lab"
+      ]
+    },
+    {
+      "pokemonId": 114,
+      "name": "Tangela",
+      "game": "firered",
+      "dbLocation": "Route 21",
+      "cleanName": "kanto-route-21",
+      "pokeApiAreas": [
+        "kanto-sea-route-21-area",
+        "treasure-beach-area"
+      ]
+    },
+    {
+      "pokemonId": 114,
+      "name": "Tangela",
+      "game": "leafgreen",
+      "dbLocation": "Route 21",
+      "cleanName": "kanto-route-21",
+      "pokeApiAreas": [
+        "kanto-sea-route-21-area",
+        "treasure-beach-area"
+      ]
+    },
+    {
+      "pokemonId": 116,
+      "name": "Horsea",
+      "game": "red",
+      "dbLocation": "Route 19 (Fishing - Super Rod)",
+      "cleanName": "kanto-route-19",
+      "pokeApiAreas": [
+        "seafoam-islands-1f",
+        "seafoam-islands-b1f",
+        "seafoam-islands-b2f",
+        "seafoam-islands-b3f",
+        "seafoam-islands-b4f",
+        "kanto-sea-route-19-area",
+        "kanto-sea-route-20-area",
+        "cinnabar-island-area",
+        "kanto-sea-route-21-area"
+      ]
+    },
+    {
+      "pokemonId": 116,
+      "name": "Horsea",
+      "game": "blue",
+      "dbLocation": "Route 19 (Fishing - Super Rod)",
+      "cleanName": "kanto-route-19",
+      "pokeApiAreas": [
+        "seafoam-islands-b3f",
+        "seafoam-islands-b4f",
+        "kanto-sea-route-19-area",
+        "kanto-sea-route-20-area",
+        "cinnabar-island-area",
+        "kanto-sea-route-21-area"
+      ]
+    },
+    {
+      "pokemonId": 116,
+      "name": "Horsea",
+      "game": "gold",
+      "dbLocation": "Whirl Islands (Whirlpool)",
+      "cleanName": "whirl-isl-s",
+      "pokeApiAreas": [
+        "whirl-islands-1f",
+        "whirl-islands-b2f",
+        "whirl-islands-b3f"
+      ]
+    },
+    {
+      "pokemonId": 116,
+      "name": "Horsea",
+      "game": "silver",
+      "dbLocation": "Whirl Islands (Whirlpool)",
+      "cleanName": "whirl-isl-s",
+      "pokeApiAreas": [
+        "whirl-islands-1f",
+        "whirl-islands-b2f",
+        "whirl-islands-b3f"
+      ]
+    },
+    {
+      "pokemonId": 116,
+      "name": "Horsea",
+      "game": "crystal",
+      "dbLocation": "Whirl Islands (Whirlpool)",
+      "cleanName": "whirl-isl-s",
+      "pokeApiAreas": [
+        "whirl-islands-1f",
+        "whirl-islands-b2f",
+        "whirl-islands-b3f"
+      ]
+    },
+    {
+      "pokemonId": 116,
+      "name": "Horsea",
+      "game": "firered",
+      "dbLocation": "Route 19 (Fishing - Good Rod)",
+      "cleanName": "kanto-route-19",
+      "pokeApiAreas": [
+        "seafoam-islands-b3f",
+        "seafoam-islands-b4f",
+        "kanto-route-12-area",
+        "kanto-sea-route-19-area",
+        "kanto-sea-route-20-area",
+        "cinnabar-island-area",
+        "cerulean-city-area",
+        "vermilion-city-area",
+        "pallet-town-area",
+        "kanto-route-4-area",
+        "kanto-route-10-area",
+        "kanto-route-11-area",
+        "kanto-route-13-area",
+        "kanto-sea-route-21-area",
+        "kanto-route-24-area",
+        "ss-anne-area",
+        "icefall-cave-waterfall",
+        "kindle-road-area",
+        "treasure-beach-area",
+        "bond-bridge-area",
+        "resort-gorgeous-area",
+        "water-labyrinth-area",
+        "five-isle-meadow-area",
+        "memorial-pillar-area",
+        "outcast-island-area",
+        "green-path-area",
+        "water-path-area",
+        "trainer-tower-area",
+        "tanoby-ruins-area",
+        "one-island-area",
+        "five-island-area"
+      ]
+    },
+    {
+      "pokemonId": 116,
+      "name": "Horsea",
+      "game": "leafgreen",
+      "dbLocation": "Route 19 (Fishing - Good Rod)",
+      "cleanName": "kanto-route-19",
+      "pokeApiAreas": [
+        "seafoam-islands-b3f",
+        "seafoam-islands-b4f",
+        "kanto-route-12-area",
+        "kanto-sea-route-19-area",
+        "kanto-sea-route-20-area",
+        "cinnabar-island-area",
+        "cerulean-city-area",
+        "vermilion-city-area",
+        "pallet-town-area",
+        "kanto-route-4-area",
+        "kanto-route-10-area",
+        "kanto-route-11-area",
+        "kanto-route-13-area",
+        "kanto-sea-route-21-area",
+        "kanto-route-24-area",
+        "ss-anne-area"
+      ]
+    },
+    {
+      "pokemonId": 117,
+      "name": "Seadra",
+      "game": "firered",
+      "dbLocation": "Route 19 (Fishing - Super Rod)",
+      "cleanName": "kanto-route-19",
+      "pokeApiAreas": [
+        "kanto-sea-route-19-area",
+        "kanto-sea-route-20-area",
+        "cinnabar-island-area",
+        "pallet-town-area",
+        "kanto-sea-route-21-area",
+        "icefall-cave-waterfall",
+        "kindle-road-area",
+        "treasure-beach-area",
+        "bond-bridge-area",
+        "resort-gorgeous-area",
+        "water-labyrinth-area",
+        "five-isle-meadow-area",
+        "memorial-pillar-area",
+        "outcast-island-area",
+        "green-path-area",
+        "water-path-area",
+        "trainer-tower-area",
+        "tanoby-ruins-area",
+        "one-island-area",
+        "five-island-area"
+      ]
+    },
+    {
+      "pokemonId": 120,
+      "name": "Staryu",
+      "game": "blue",
+      "dbLocation": "Route 19, 20, 21 (Fishing - Super Rod) & Seafoam Islands",
+      "cleanName": "kanto-route-19",
+      "pokeApiAreas": [
+        "seafoam-islands-1f",
+        "seafoam-islands-b1f",
+        "seafoam-islands-b2f",
+        "seafoam-islands-b3f",
+        "seafoam-islands-b4f",
+        "kanto-sea-route-19-area",
+        "kanto-sea-route-20-area",
+        "cinnabar-island-area",
+        "kanto-sea-route-21-area"
+      ]
+    },
+    {
+      "pokemonId": 120,
+      "name": "Staryu",
+      "game": "yellow",
+      "dbLocation": "Route 19, 20, 21 (Fishing - Super Rod) & Seafoam Islands (Surfing)",
+      "cleanName": "kanto-route-19",
+      "pokeApiAreas": [
+        "seafoam-islands-b3f",
+        "seafoam-islands-b4f",
+        "kanto-sea-route-19-area",
+        "kanto-sea-route-20-area",
+        "cinnabar-island-area",
+        "pallet-town-area",
+        "kanto-sea-route-21-area",
+        "vermilion-city-ss-anne-dock"
+      ]
+    },
+    {
+      "pokemonId": 122,
+      "name": "Mr. Mime",
+      "game": "gold",
+      "dbLocation": "Route 21",
+      "cleanName": "kanto-route-21",
+      "pokeApiAreas": [
+        "kanto-sea-route-21-area",
+        "celadon-city-prize-corner"
+      ]
+    },
+    {
+      "pokemonId": 122,
+      "name": "Mr. Mime",
+      "game": "silver",
+      "dbLocation": "Route 21",
+      "cleanName": "kanto-route-21",
+      "pokeApiAreas": [
+        "kanto-sea-route-21-area",
+        "celadon-city-prize-corner"
+      ]
+    },
+    {
+      "pokemonId": 122,
+      "name": "Mr. Mime",
+      "game": "crystal",
+      "dbLocation": "Route 21",
+      "cleanName": "kanto-route-21",
+      "pokeApiAreas": [
+        "kanto-sea-route-21-area"
+      ]
+    },
+    {
+      "pokemonId": 123,
+      "name": "Scyther",
+      "game": "gold",
+      "dbLocation": "National Park (Bug Catching Contest)",
+      "cleanName": "national-park",
+      "pokeApiAreas": []
+    },
+    {
+      "pokemonId": 123,
+      "name": "Scyther",
+      "game": "silver",
+      "dbLocation": "National Park (Bug Catching Contest)",
+      "cleanName": "national-park",
+      "pokeApiAreas": []
+    },
+    {
+      "pokemonId": 123,
+      "name": "Scyther",
+      "game": "crystal",
+      "dbLocation": "National Park (Bug Catching Contest)",
+      "cleanName": "national-park",
+      "pokeApiAreas": []
+    },
+    {
+      "pokemonId": 127,
+      "name": "Pinsir",
+      "game": "gold",
+      "dbLocation": "National Park (Bug Catching Contest)",
+      "cleanName": "national-park",
+      "pokeApiAreas": []
+    },
+    {
+      "pokemonId": 127,
+      "name": "Pinsir",
+      "game": "silver",
+      "dbLocation": "National Park (Bug Catching Contest)",
+      "cleanName": "national-park",
+      "pokeApiAreas": []
+    },
+    {
+      "pokemonId": 127,
+      "name": "Pinsir",
+      "game": "crystal",
+      "dbLocation": "National Park (Bug Catching Contest)",
+      "cleanName": "national-park",
+      "pokeApiAreas": []
+    },
+    {
+      "pokemonId": 190,
+      "name": "Aipom",
+      "game": "crystal",
+      "dbLocation": "Route 29, 30, 31, 32 & 33 (Headbutt)",
+      "cleanName": "johto-route-29",
+      "pokeApiAreas": [
+        "johto-route-33-area",
+        "johto-route-42-area",
+        "johto-route-44-area",
+        "johto-route-45-area",
+        "johto-route-46-area",
+        "azalea-town-area"
+      ]
+    },
+    {
+      "pokemonId": 201,
+      "name": "Unown",
+      "game": "firered",
+      "dbLocation": "Tanoby Ruins (Seven Island)",
+      "cleanName": "tanoby-ruins",
+      "pokeApiAreas": [
+        "monean-chamber-area",
+        "liptoo-chamber-area",
+        "weepth-chamber-area",
+        "dilford-chamber-area",
+        "scufib-chamber-area",
+        "rixy-chamber-area",
+        "viapos-chamber-area"
+      ]
+    },
+    {
+      "pokemonId": 201,
+      "name": "Unown",
+      "game": "leafgreen",
+      "dbLocation": "Tanoby Ruins (Seven Island)",
+      "cleanName": "tanoby-ruins",
+      "pokeApiAreas": [
+        "monean-chamber-area",
+        "liptoo-chamber-area",
+        "weepth-chamber-area",
+        "dilford-chamber-area",
+        "scufib-chamber-area",
+        "rixy-chamber-area",
+        "viapos-chamber-area"
+      ]
+    },
+    {
+      "pokemonId": 206,
+      "name": "Dunsparce",
+      "game": "firered",
+      "dbLocation": "Three Island Port (Grass)",
+      "cleanName": "three-isl-port",
+      "pokeApiAreas": [
+        "three-isle-port-area"
+      ]
+    },
+    {
+      "pokemonId": 206,
+      "name": "Dunsparce",
+      "game": "leafgreen",
+      "dbLocation": "Three Island Port (Grass)",
+      "cleanName": "three-isl-port",
+      "pokeApiAreas": [
+        "three-isle-port-area"
+      ]
+    },
+    {
+      "pokemonId": 222,
+      "name": "Corsola",
+      "game": "ruby",
+      "dbLocation": "Ever Grande City (Fishing - Super Rod)",
+      "cleanName": "ever-gr-e-city",
+      "pokeApiAreas": [
+        "ever-grande-city-area",
+        "hoenn-route-128-area",
+        "pacifidlog-town-area"
+      ]
+    },
+    {
+      "pokemonId": 222,
+      "name": "Corsola",
+      "game": "sapphire",
+      "dbLocation": "Ever Grande City (Fishing - Super Rod)",
+      "cleanName": "ever-gr-e-city",
+      "pokeApiAreas": [
+        "ever-grande-city-area",
+        "hoenn-route-128-area",
+        "pacifidlog-town-area"
+      ]
+    },
+    {
+      "pokemonId": 222,
+      "name": "Corsola",
+      "game": "emerald",
+      "dbLocation": "Ever Grande City (Fishing - Super Rod)",
+      "cleanName": "ever-gr-e-city",
+      "pokeApiAreas": [
+        "ever-grande-city-area",
+        "hoenn-route-128-area"
+      ]
+    },
+    {
+      "pokemonId": 226,
+      "name": "Mantine",
+      "game": "gold",
+      "dbLocation": "Route 41 (Surfing)",
+      "cleanName": "johto-route-41",
+      "pokeApiAreas": [
+        "johto-sea-route-41-area"
+      ]
+    },
+    {
+      "pokemonId": 226,
+      "name": "Mantine",
+      "game": "crystal",
+      "dbLocation": "Route 41 (Surfing)",
+      "cleanName": "johto-route-41",
+      "pokeApiAreas": [
+        "johto-sea-route-41-area"
+      ]
+    },
+    {
+      "pokemonId": 234,
+      "name": "Stantler",
+      "game": "crystal",
+      "dbLocation": "Route 36 & 37",
+      "cleanName": "johto-route-36",
+      "pokeApiAreas": [
+        "johto-route-37-area"
+      ]
+    },
+    {
+      "pokemonId": 356,
+      "name": "Dusclops",
+      "game": "emerald",
+      "dbLocation": "Sky Pillar",
+      "cleanName": "sky-pillar",
+      "pokeApiAreas": []
+    },
+    {
+      "pokemonId": 370,
+      "name": "Luvdisc",
+      "game": "ruby",
+      "dbLocation": "Ever Grande City (Fishing - Super Rod)",
+      "cleanName": "ever-gr-e-city",
+      "pokeApiAreas": [
+        "ever-grande-city-area",
+        "hoenn-route-128-area"
+      ]
+    },
+    {
+      "pokemonId": 370,
+      "name": "Luvdisc",
+      "game": "sapphire",
+      "dbLocation": "Ever Grande City (Fishing - Super Rod)",
+      "cleanName": "ever-gr-e-city",
+      "pokeApiAreas": [
+        "ever-grande-city-area",
+        "hoenn-route-128-area"
+      ]
+    },
+    {
+      "pokemonId": 370,
+      "name": "Luvdisc",
+      "game": "emerald",
+      "dbLocation": "Ever Grande City (Fishing - Super Rod)",
+      "cleanName": "ever-gr-e-city",
+      "pokeApiAreas": [
+        "ever-grande-city-area",
+        "hoenn-route-128-area"
+      ]
+    },
+    {
+      "pokemonId": 378,
+      "name": "Regice",
+      "game": "ruby",
+      "dbLocation": "Island Cave (Static - Solve Puzzle)",
+      "cleanName": "isl-cave",
+      "pokeApiAreas": [
+        "island-cave-area"
+      ]
+    },
+    {
+      "pokemonId": 378,
+      "name": "Regice",
+      "game": "sapphire",
+      "dbLocation": "Island Cave (Static - Solve Puzzle)",
+      "cleanName": "isl-cave",
+      "pokeApiAreas": [
+        "island-cave-area"
+      ]
+    },
+    {
+      "pokemonId": 378,
+      "name": "Regice",
+      "game": "emerald",
+      "dbLocation": "Island Cave (Static - Solve Puzzle)",
+      "cleanName": "isl-cave",
+      "pokeApiAreas": [
+        "island-cave-area"
+      ]
+    },
+    {
+      "pokemonId": 380,
+      "name": "Latias",
+      "game": "ruby",
+      "dbLocation": "Southern Island (Static)",
+      "cleanName": "southern-isl-",
+      "pokeApiAreas": [
+        "southern-island-area"
+      ]
+    },
+    {
+      "pokemonId": 381,
+      "name": "Latios",
+      "game": "sapphire",
+      "dbLocation": "Southern Island (Static)",
+      "cleanName": "southern-isl-",
+      "pokeApiAreas": [
+        "southern-island-area"
+      ]
+    }
+  ],
+  "falsePositives": [
+    {
+      "pokemonId": 356,
+      "name": "Dusclops",
+      "game": "emerald",
+      "dbLocations": [
+        "Sky Pillar"
+      ]
+    }
+  ],
   "errors": []
 }
