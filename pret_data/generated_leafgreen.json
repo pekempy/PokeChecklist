@@ -1,0 +1,38 @@
+{
+  "33": {
+    "loc": "Route 11 (Trade)",
+    "sec": 7
+  },
+  "79": {
+    "loc": "Route 04 (Super Rod), Route 06 (Super Rod), Route 10 (Super Rod), Route 11 (Super Rod), Route 12 (Super Rod), Route 13 (Super Rod), Route 19 (Super Rod), Route 20 (Super Rod), Route 21 (Super Rod), Route 22 (Super Rod), Route 23 (Super Rod), Route 24 (Super Rod), Route 25 (Super Rod), Pallet Town (Super Rod), Viridian City (Super Rod), Cerulean City (Super Rod), Vermilion City (Super Rod), Vermilion City Port (Super Rod), Fuchsia City (Super Rod), Cinnabar Island (Super Rod), Cerulean Cave 1f (Super Rod), Cerulean Cave B2f (Super Rod), Safari Zone  Center Area (Super Rod), Safari Zone  Area 1 (Super Rod), Safari Zone  Area 2 (Super Rod), Safari Zone  Area 3 (Super Rod), Seafoam Islands B3f (Super Rod), Seafoam Islands B4f (Super Rod), One Island (Super Rod), Four Island (Super Rod), Five Island (Super Rod), Treasure Beach (Super Rod), Kindle Road (Super Rod), Cape Brink (Super Rod), Bond Bridge (Super Rod), Resort Gorgeous (Super Rod), Water Labyrinth (Super Rod), Five Isle Meadow (Super Rod), Memorial Pillar (Super Rod), Outcast Island (Super Rod), Green Path (Super Rod), Water Path (Super Rod), Ruin Valley (Super Rod), Trainer Tower (Super Rod), Tanoby Ruins (Super Rod), Berry Forest (Super Rod), Icefall Cave Entrance (Super Rod), Icefall Cave Back Cave (Super Rod)",
+    "sec": 7
+  },
+  "80": {
+    "loc": "Cinnabar Island (Super Rod)",
+    "sec": 7
+  },
+  "98": {
+    "loc": "Route 04 (Good Rod), Route 04 (Super Rod), Route 10 (Good Rod), Route 10 (Super Rod), Route 11 (Good Rod), Route 11 (Super Rod), Route 12 (Good Rod), Route 12 (Super Rod), Route 13 (Good Rod), Route 13 (Super Rod), Route 19 (Good Rod), Route 19 (Super Rod), Route 20 (Good Rod), Route 20 (Super Rod), Route 21 (Good Rod), Route 21 (Super Rod), Route 24 (Good Rod), Route 24 (Super Rod), Pallet Town (Good Rod), Pallet Town (Super Rod), Cerulean City (Good Rod), Cerulean City (Super Rod), Vermilion City (Good Rod), Vermilion City (Super Rod), Vermilion City Port (Good Rod), Vermilion City Port (Super Rod), Cinnabar Island (Good Rod), Cinnabar Island (Super Rod), Seafoam Islands B3f (Good Rod), Seafoam Islands B3f (Super Rod), Seafoam Islands B4f (Good Rod), Seafoam Islands B4f (Super Rod), One Island (Good Rod), One Island (Super Rod), Five Island (Good Rod), Five Island (Super Rod), Treasure Beach (Good Rod), Treasure Beach (Super Rod), Kindle Road (Good Rod), Kindle Road (Super Rod), Bond Bridge (Good Rod), Bond Bridge (Super Rod), Resort Gorgeous (Good Rod), Resort Gorgeous (Super Rod), Water Labyrinth (Good Rod), Water Labyrinth (Super Rod), Five Isle Meadow (Good Rod), Five Isle Meadow (Super Rod), Memorial Pillar (Good Rod), Memorial Pillar (Super Rod), Outcast Island (Good Rod), Outcast Island (Super Rod), Green Path (Good Rod), Green Path (Super Rod), Water Path (Good Rod), Water Path (Super Rod), Trainer Tower (Good Rod), Trainer Tower (Super Rod), Tanoby Ruins (Good Rod), Tanoby Ruins (Super Rod), Icefall Cave Back Cave (Good Rod), Icefall Cave Back Cave (Super Rod)",
+    "sec": 7
+  },
+  "99": {
+    "loc": "Route 19 (Super Rod), Route 20 (Super Rod), Route 21 (Super Rod), Pallet Town (Super Rod), One Island (Super Rod), Five Island (Super Rod), Treasure Beach (Super Rod), Kindle Road (Super Rod), Bond Bridge (Super Rod), Resort Gorgeous (Super Rod), Water Labyrinth (Super Rod), Five Isle Meadow (Super Rod), Memorial Pillar (Super Rod), Outcast Island (Super Rod), Green Path (Super Rod), Water Path (Super Rod), Trainer Tower (Super Rod), Tanoby Ruins (Super Rod), Icefall Cave Back Cave (Super Rod)",
+    "sec": 7
+  },
+  "108": {
+    "loc": "Route 18 (Trade)",
+    "sec": 7
+  },
+  "116": {
+    "loc": "Route 04 (Good Rod), Route 10 (Good Rod), Route 11 (Good Rod), Route 12 (Good Rod), Route 13 (Good Rod), Route 19 (Good Rod), Route 20 (Good Rod), Route 21 (Good Rod), Route 24 (Good Rod), Pallet Town (Good Rod), Cerulean City (Good Rod), Vermilion City (Good Rod), Vermilion City (Super Rod), Vermilion City Port (Good Rod), Cinnabar Island (Good Rod), Seafoam Islands B3f (Good Rod), Seafoam Islands B4f (Good Rod)",
+    "sec": 7
+  },
+  "120": {
+    "loc": "Pallet Town (Super Rod), Vermilion City (Super Rod), Vermilion City Port (Good Rod), Cinnabar Island (Super Rod), One Island (Super Rod), Five Island (Super Rod), Icefall Cave Back Cave (Super Rod)",
+    "sec": 7
+  },
+  "223": {
+    "loc": "Resort Gorgeous (Super Rod), Water Labyrinth (Super Rod), Five Isle Meadow (Super Rod), Memorial Pillar (Super Rod), Outcast Island (Super Rod), Green Path (Super Rod), Water Path (Super Rod), Trainer Tower (Super Rod), Tanoby Ruins (Super Rod)",
+    "sec": 7
+  }
+}

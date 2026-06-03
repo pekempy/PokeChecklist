@@ -16,9 +16,9 @@ export default {
       assert.strictEqual(games.length, 11, "Should have exactly 11 games.");
     },
 
-    "Verify Sections table contains exactly 110 sections (10 per game)": async () => {
+    "Verify Sections table contains exactly 92 sections (Prof Oak Challenge structure)": async () => {
       const sections = await query("SELECT * FROM sections");
-      assert.strictEqual(sections.length, 110, "Should have exactly 110 sections (10 per game).");
+      assert.strictEqual(sections.length, 92, "Should have exactly 92 sections (Prof Oak).");
     },
 
     "Verify Requirements counts match expected generation sizes (151, 251, 386, 386)": async () => {
@@ -40,7 +40,7 @@ export default {
       const farfetchdYellow = await query("SELECT * FROM requirements WHERE game_id = 'yellow' AND pokemon_id = 83");
       assert.strictEqual(farfetchdYellow.length, 1);
       assert.strictEqual(farfetchdYellow[0].action_type, 'CATCH');
-      assert.strictEqual(farfetchdYellow[0].location_details, 'Route 12 & 13 (Grass)');
+      assert.strictEqual(farfetchdYellow[0].location_details, 'Route 12, Route 13');
 
       const farfetchdRed = await query("SELECT * FROM requirements WHERE game_id = 'red' AND pokemon_id = 83");
       assert.strictEqual(farfetchdRed.length, 1);
@@ -51,7 +51,7 @@ export default {
       const lickitungYellow = await query("SELECT * FROM requirements WHERE game_id = 'yellow' AND pokemon_id = 108");
       assert.strictEqual(lickitungYellow.length, 1);
       assert.strictEqual(lickitungYellow[0].action_type, 'CATCH');
-      assert.strictEqual(lickitungYellow[0].location_details, 'Cerulean Cave (Cave)');
+      assert.strictEqual(lickitungYellow[0].location_details, 'Cerulean Cave');
 
       const lickitungRed = await query("SELECT * FROM requirements WHERE game_id = 'red' AND pokemon_id = 108");
       assert.strictEqual(lickitungRed.length, 1);

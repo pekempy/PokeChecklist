@@ -1,0 +1,450 @@
+{
+  "25": {
+    "loc": "Safari Zone",
+    "sec": 5
+  },
+  "27": {
+    "loc": "Route111, Route113",
+    "sec": 9
+  },
+  "37": {
+    "loc": "Mt. Pyre",
+    "sec": 5
+  },
+  "39": {
+    "loc": "Route115",
+    "sec": 9
+  },
+  "41": {
+    "loc": "Granite Cave, Meteor Falls...",
+    "sec": 2
+  },
+  "42": {
+    "loc": "Meteor Falls, Shoal Cave...",
+    "sec": 3
+  },
+  "43": {
+    "loc": "Safari Zone, Route110...",
+    "sec": 5
+  },
+  "44": {
+    "loc": "Safari Zone, Route121, Route123",
+    "sec": 5
+  },
+  "54": {
+    "loc": "Safari Zone (Surf)",
+    "sec": 5
+  },
+  "55": {
+    "loc": "Safari Zone (Surf)",
+    "sec": 5
+  },
+  "63": {
+    "loc": "Granite Cave",
+    "sec": 2
+  },
+  "66": {
+    "loc": "Jagged Pass, Fiery Path, Route112",
+    "sec": 3
+  },
+  "72": {
+    "loc": "Shoal Cave, Seafloor Cavern... (Surf), Team Aqua Hideout (Old Rod), Team Aqua Hideout (Good Rod)",
+    "sec": 5
+  },
+  "73": {
+    "loc": "Abandoned Ship Rooms, Abandoned Ship Hidden Floor Corridors (Surf)",
+    "sec": 9
+  },
+  "74": {
+    "loc": "Granite Cave, Safari Zone...",
+    "sec": 2
+  },
+  "75": {
+    "loc": "Victory Road (Rock Smash)",
+    "sec": 8
+  },
+  "81": {
+    "loc": "New Mauville Entrance, New Mauville Inside",
+    "sec": 9
+  },
+  "82": {
+    "loc": "New Mauville Inside",
+    "sec": 9
+  },
+  "84": {
+    "loc": "Safari Zone",
+    "sec": 5
+  },
+  "85": {
+    "loc": "Safari Zone",
+    "sec": 5
+  },
+  "88": {
+    "loc": "Fiery Path",
+    "sec": 3
+  },
+  "100": {
+    "loc": "New Mauville Entrance, New Mauville Inside",
+    "sec": 9
+  },
+  "101": {
+    "loc": "New Mauville Inside",
+    "sec": 9
+  },
+  "109": {
+    "loc": "Fiery Path",
+    "sec": 3
+  },
+  "111": {
+    "loc": "Safari Zone",
+    "sec": 5
+  },
+  "116": {
+    "loc": "Route132, Route133, Route134 (Fish)",
+    "sec": 9
+  },
+  "118": {
+    "loc": "Meteor Falls, Safari Zone... (Fish)",
+    "sec": 3
+  },
+  "119": {
+    "loc": "Safari Zone (Fish)",
+    "sec": 5
+  },
+  "120": {
+    "loc": "Lilycove City (Fish), Team Aqua Hideout (Super Rod)",
+    "sec": 9
+  },
+  "127": {
+    "loc": "Safari Zone",
+    "sec": 5
+  },
+  "129": {
+    "loc": "Meteor Falls, Shoal Cave... (Surf), Team Aqua Hideout (Old Rod), Team Aqua Hideout (Good Rod)",
+    "sec": 3
+  },
+  "130": {
+    "loc": "Sootopolis City (Fish)",
+    "sec": 9
+  },
+  "170": {
+    "loc": "Underwater1, Underwater2 (Surf)",
+    "sec": 9
+  },
+  "177": {
+    "loc": "Safari Zone",
+    "sec": 5
+  },
+  "178": {
+    "loc": "Safari Zone",
+    "sec": 5
+  },
+  "183": {
+    "loc": "Petalburg City, Route102...",
+    "sec": 9
+  },
+  "202": {
+    "loc": "Safari Zone",
+    "sec": 5
+  },
+  "203": {
+    "loc": "Safari Zone",
+    "sec": 5
+  },
+  "214": {
+    "loc": "Safari Zone",
+    "sec": 5
+  },
+  "218": {
+    "loc": "Fiery Path",
+    "sec": 3
+  },
+  "222": {
+    "loc": "Ever Grande City, Route128 (Fish)",
+    "sec": 8
+  },
+  "227": {
+    "loc": "Route113",
+    "sec": 9
+  },
+  "231": {
+    "loc": "Safari Zone",
+    "sec": 5
+  },
+  "261": {
+    "loc": "Route101, Route102, Route103",
+    "sec": 9
+  },
+  "263": {
+    "loc": "Petalburg Woods, Route101...",
+    "sec": 1
+  },
+  "264": {
+    "loc": "Route118, Route119...",
+    "sec": 9
+  },
+  "265": {
+    "loc": "Petalburg Woods, Route101...",
+    "sec": 1
+  },
+  "266": {
+    "loc": "Petalburg Woods",
+    "sec": 1
+  },
+  "268": {
+    "loc": "Petalburg Woods",
+    "sec": 1
+  },
+  "270": {
+    "loc": "Route102, Route114",
+    "sec": 9
+  },
+  "271": {
+    "loc": "Route114",
+    "sec": 9
+  },
+  "276": {
+    "loc": "Petalburg Woods, Route104...",
+    "sec": 1
+  },
+  "277": {
+    "loc": "Route115",
+    "sec": 9
+  },
+  "278": {
+    "loc": "Mt. Pyre, Ever Grande City...",
+    "sec": 5
+  },
+  "279": {
+    "loc": "Ever Grande City, Slateport City... (Surf)",
+    "sec": 8
+  },
+  "280": {
+    "loc": "Route102",
+    "sec": 9
+  },
+  "283": {
+    "loc": "Route102, Route111...",
+    "sec": 9
+  },
+  "285": {
+    "loc": "Petalburg Woods",
+    "sec": 1
+  },
+  "287": {
+    "loc": "Petalburg Woods",
+    "sec": 1
+  },
+  "290": {
+    "loc": "Route116",
+    "sec": 9
+  },
+  "293": {
+    "loc": "Rusturf Tunnel, Victory Road, Route116",
+    "sec": 1
+  },
+  "294": {
+    "loc": "Victory Road",
+    "sec": 8
+  },
+  "296": {
+    "loc": "Granite Cave, Victory Road",
+    "sec": 2
+  },
+  "297": {
+    "loc": "Victory Road",
+    "sec": 8
+  },
+  "299": {
+    "loc": "Granite Cave (Rock Smash)",
+    "sec": 2
+  },
+  "300": {
+    "loc": "Route116",
+    "sec": 9
+  },
+  "302": {
+    "loc": "Granite Cave, Cave Of Origin...",
+    "sec": 2
+  },
+  "304": {
+    "loc": "Granite Cave, Victory Road",
+    "sec": 2
+  },
+  "305": {
+    "loc": "Victory Road",
+    "sec": 8
+  },
+  "307": {
+    "loc": "Mt. Pyre, Victory Road",
+    "sec": 5
+  },
+  "308": {
+    "loc": "Victory Road",
+    "sec": 8
+  },
+  "309": {
+    "loc": "Route110, Route118",
+    "sec": 9
+  },
+  "310": {
+    "loc": "Route118",
+    "sec": 9
+  },
+  "311": {
+    "loc": "Route110",
+    "sec": 9
+  },
+  "312": {
+    "loc": "Route110",
+    "sec": 9
+  },
+  "313": {
+    "loc": "Route117",
+    "sec": 9
+  },
+  "314": {
+    "loc": "Route117",
+    "sec": 9
+  },
+  "315": {
+    "loc": "Route117",
+    "sec": 9
+  },
+  "316": {
+    "loc": "Route110",
+    "sec": 9
+  },
+  "318": {
+    "loc": "Route118, Route119 (Fish)",
+    "sec": 9
+  },
+  "319": {
+    "loc": "Mossdeep City, Route103... (Fish)",
+    "sec": 9
+  },
+  "320": {
+    "loc": "Shoal Cave, Seafloor Cavern... (Fish)",
+    "sec": 5
+  },
+  "321": {
+    "loc": "Route129 (Surf)",
+    "sec": 9
+  },
+  "322": {
+    "loc": "Jagged Pass, Fiery Path, Route112",
+    "sec": 3
+  },
+  "324": {
+    "loc": "Fiery Path",
+    "sec": 3
+  },
+  "325": {
+    "loc": "Jagged Pass",
+    "sec": 3
+  },
+  "327": {
+    "loc": "Route113",
+    "sec": 9
+  },
+  "328": {
+    "loc": "Route111",
+    "sec": 9
+  },
+  "331": {
+    "loc": "Route111",
+    "sec": 9
+  },
+  "333": {
+    "loc": "Route114, Route115",
+    "sec": 9
+  },
+  "334": {
+    "loc": "Sky Pillar 5f",
+    "sec": 9
+  },
+  "336": {
+    "loc": "Route114",
+    "sec": 9
+  },
+  "337": {
+    "loc": "Meteor Falls",
+    "sec": 3
+  },
+  "339": {
+    "loc": "Meteor Falls, Victory Road... (Fish)",
+    "sec": 3
+  },
+  "340": {
+    "loc": "Meteor Falls, Victory Road (Fish)",
+    "sec": 3
+  },
+  "341": {
+    "loc": "Petalburg City, Route102, Route117 (Fish)",
+    "sec": 9
+  },
+  "343": {
+    "loc": "Route111",
+    "sec": 9
+  },
+  "344": {
+    "loc": "Sky Pillar, Sky Pillar 5f",
+    "sec": 7
+  },
+  "352": {
+    "loc": "Route118, Route119...",
+    "sec": 9
+  },
+  "353": {
+    "loc": "Mt. Pyre, Route121, Route123",
+    "sec": 5
+  },
+  "354": {
+    "loc": "Sky Pillar, Sky Pillar 5f",
+    "sec": 7
+  },
+  "355": {
+    "loc": "Mt. Pyre",
+    "sec": 5
+  },
+  "357": {
+    "loc": "Route119",
+    "sec": 9
+  },
+  "358": {
+    "loc": "Mt. Pyre",
+    "sec": 5
+  },
+  "359": {
+    "loc": "Route120",
+    "sec": 9
+  },
+  "360": {
+    "loc": "Route130",
+    "sec": 9
+  },
+  "361": {
+    "loc": "Shoal Cave",
+    "sec": 5
+  },
+  "363": {
+    "loc": "Shoal Cave",
+    "sec": 5
+  },
+  "366": {
+    "loc": "Underwater1, Underwater2 (Surf)",
+    "sec": 9
+  },
+  "369": {
+    "loc": "Underwater1, Underwater2 (Surf)",
+    "sec": 9
+  },
+  "370": {
+    "loc": "Ever Grande City, Route128 (Fish)",
+    "sec": 8
+  },
+  "371": {
+    "loc": "Meteor Falls",
+    "sec": 3
+  }
+}

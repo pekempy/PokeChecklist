@@ -22,9 +22,24 @@ let state = {
   searchQuery: '',
   searchResults: []
 };
+const gameColors = {
+  red: '#ef4444',
+  blue: '#3b82f6',
+  yellow: '#eab308',
+  gold: '#d97706',
+  silver: '#94a3b8',
+  crystal: '#38bdf8',
+  ruby: '#f43f5e',
+  sapphire: '#2563eb',
+  emerald: '#10b981',
+  firered: '#f97316',
+  leafgreen: '#22c55e'
+};
 
 // DOM Elements
-const gameSelect = document.getElementById('game-select');
+const dropdownContainer = document.getElementById('game-select-container');
+const dropdownTrigger = document.getElementById('dropdown-trigger');
+const dropdownMenu = document.getElementById('dropdown-menu');
 const sectionNav = document.getElementById('section-nav');
 const activeSectionDetails = document.getElementById('active-section-details');
 const sectionTitle = document.getElementById('section-title');
@@ -46,22 +61,42 @@ window.addEventListener('DOMContentLoaded', async () => {
     console.error('Failed to load evolutions mapping:', err);
   }
 
+  // Load games from API first
   await loadGames();
-  
+
   // Set default game from localStorage if available, otherwise Yellow, otherwise first game
   const savedDefault = localStorage.getItem('default_game');
   const hasSavedDefault = savedDefault && state.games.some(g => g.id === savedDefault);
   const defaultGame = hasSavedDefault ? savedDefault : 'yellow';
 
-  if (state.games.some(g => g.id === defaultGame)) {
-    state.selectedGameId = defaultGame;
-    gameSelect.value = defaultGame;
-  } else if (state.games.length > 0) {
-    state.selectedGameId = state.games[0].id;
-    gameSelect.value = state.games[0].id;
+  // Select the default game
+  selectGame(defaultGame);
+
+  // Custom Dropdown Event Listeners
+  if (dropdownTrigger) {
+    dropdownTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = !dropdownMenu.classList.contains('hidden');
+      if (isOpen) {
+        dropdownMenu.classList.add('hidden');
+        dropdownContainer.classList.remove('open');
+        dropdownTrigger.setAttribute('aria-expanded', 'false');
+      } else {
+        dropdownMenu.classList.remove('hidden');
+        dropdownContainer.classList.add('open');
+        dropdownTrigger.setAttribute('aria-expanded', 'true');
+      }
+    });
   }
-  
-  await handleGameChange();
+
+  // Global click listener to close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (dropdownContainer && !dropdownContainer.contains(e.target)) {
+      dropdownMenu.classList.add('hidden');
+      dropdownContainer.classList.remove('open');
+      if (dropdownTrigger) dropdownTrigger.setAttribute('aria-expanded', 'false');
+    }
+  });
 
   // Helper for custom confirmation modals
   function showCustomConfirm({ title, message, okText, okClass, onConfirm }) {
@@ -171,6 +206,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     filterShowEvolutions.addEventListener('click', () => {
       state.filters.showEvolutions = !state.filters.showEvolutions;
       filterShowEvolutions.classList.toggle('active', state.filters.showEvolutions);
+      saveGameFilters();
       renderChecklistCards();
     });
   }
@@ -179,6 +215,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (toolHeadbutt) {
     toolHeadbutt.addEventListener('change', (e) => {
       state.filters.showHeadbutt = e.target.checked;
+      saveGameFilters();
       renderChecklistCards();
     });
   }
@@ -226,6 +263,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (filterTimeOfDay) {
     filterTimeOfDay.addEventListener('change', (e) => {
       state.filters.timeOfDay = e.target.value;
+      saveGameFilters();
       renderSubTabs(state.sections.find(s => s.section_id === state.selectedSectionId)?.items);
       renderChecklistCards();
     });
@@ -252,11 +290,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
   }
   
-  // Event Listeners
-  gameSelect.addEventListener('change', async (e) => {
-    state.selectedGameId = e.target.value;
-    await handleGameChange();
-  });
+  
 
   // Tool Filters Event Listeners
   const surfCheckbox = document.getElementById('tool-surf');
@@ -282,53 +316,107 @@ window.addEventListener('DOMContentLoaded', async () => {
       renderChecklistCards();
     });
   }
+
+  // Sidebar toggle (mobile)
+  const menuToggle = document.getElementById('menu-toggle');
+  const sidebar = document.getElementById('sidebar');
+  const sidebarOverlay = document.getElementById('sidebar-overlay');
+  const openSidebar = () => { sidebar?.classList.add('open'); sidebarOverlay?.classList.add('open'); menuToggle?.setAttribute('aria-expanded','true'); };
+  const closeSidebar = () => { sidebar?.classList.remove('open'); sidebarOverlay?.classList.remove('open'); menuToggle?.setAttribute('aria-expanded','false'); };
+  menuToggle?.addEventListener('click', () => sidebar?.classList.contains('open') ? closeSidebar() : openSidebar());
+  sidebarOverlay?.addEventListener('click', closeSidebar);
+  document.getElementById('section-nav')?.addEventListener('click', () => { if (window.innerWidth < 900) closeSidebar(); });
 });
 
 async function loadAndSyncGameFilters() {
-  try {
-    const res = await fetch(`/api/settings?game_id=${state.selectedGameId}`);
-    const settings = await res.json();
-    state.gameFilters[state.selectedGameId] = {
-      surf: !!settings.surf,
-      rod: settings.rod || 'none',
-      trade_link: settings.trade_link || 'all',
-      active_section_id: settings.active_section_id || null
-    };
-  } catch (err) {
-    console.error('Failed to load settings from server, falling back to defaults:', err);
-    state.gameFilters[state.selectedGameId] = {
-      surf: false,
-      rod: 'none',
-      trade_link: 'all',
-      active_section_id: null
-    };
-  }
+  const gameId = state.selectedGameId;
+  
+  // 1. Read from localStorage for instant, zero-delay settings
+  const localSurf = localStorage.getItem(`pokechecklist_${gameId}_surf`) === 'true';
+  const localRod = localStorage.getItem(`pokechecklist_${gameId}_rod`) || 'none';
+  const localTradeLink = localStorage.getItem(`pokechecklist_${gameId}_trade_link`) || 'all';
+  const localSectionId = localStorage.getItem(`pokechecklist_active_section_${gameId}`);
+  const localRoute = localStorage.getItem(`pokechecklist_active_route_${gameId}_${localSectionId || 'All'}`) || 'All';
+  const localShowHeadbutt = localStorage.getItem(`pokechecklist_${gameId}_show_headbutt`) !== 'false';
+  const localShowEvos = localStorage.getItem(`pokechecklist_${gameId}_show_evolutions`) !== 'false';
+  const localTimeOfDay = localStorage.getItem(`pokechecklist_${gameId}_time_of_day`) || 'all';
+
+  // Apply to state
+  state.gameFilters[gameId] = {
+    surf: localSurf,
+    rod: localRod,
+    trade_link: localTradeLink,
+    active_section_id: localSectionId ? Number(localSectionId) : null
+  };
+  state.selectedSubTab = localRoute;
+  state.filters.showHeadbutt = localShowHeadbutt;
+  state.filters.showEvolutions = localShowEvos;
+  state.filters.timeOfDay = localTimeOfDay;
+  state.filters.tradeLink = localTradeLink;
 
   // Sync to UI
-  const currentFilters = state.gameFilters[state.selectedGameId];
+  syncFiltersToUi();
+
+  // 2. Fetch settings from server as backup / cloud sync
+  try {
+    const res = await fetch(`/api/settings?game_id=${gameId}`);
+    const settings = await res.json();
+    if (settings) {
+      // Server loaded ok, but local state takes precedence for instant response
+    }
+  } catch (err) {
+    console.error('Failed to load settings from server, falling back to local settings:', err);
+  }
+}
+
+function syncFiltersToUi() {
+  const gameId = state.selectedGameId;
+  const currentFilters = state.gameFilters[gameId] || { surf: false, rod: 'none', trade_link: 'all' };
+  
   const surfCheckbox = document.getElementById('tool-surf');
-  if (surfCheckbox) {
-    surfCheckbox.checked = !!currentFilters.surf;
-  }
+  if (surfCheckbox) surfCheckbox.checked = !!currentFilters.surf;
+  
   const rodSelect = document.getElementById('tool-rod');
-  if (rodSelect) {
-    rodSelect.value = currentFilters.rod || 'none';
-  }
+  if (rodSelect) rodSelect.value = currentFilters.rod || 'none';
+  
   const tradeSelect = document.getElementById('filter-trade-link');
-  if (tradeSelect) {
-    tradeSelect.value = currentFilters.trade_link || 'all';
+  if (tradeSelect) tradeSelect.value = currentFilters.trade_link || 'all';
+  
+  const toolHeadbutt = document.getElementById('tool-headbutt');
+  if (toolHeadbutt) toolHeadbutt.checked = !!state.filters.showHeadbutt;
+  
+  const filterShowEvolutions = document.getElementById('filter-show-evolutions');
+  if (filterShowEvolutions) {
+    filterShowEvolutions.classList.toggle('active', !!state.filters.showEvolutions);
   }
-  state.filters.tradeLink = currentFilters.trade_link || 'all';
+  
+  const filterTimeOfDay = document.getElementById('filter-time-of-day');
+  if (filterTimeOfDay) filterTimeOfDay.value = state.filters.timeOfDay || 'all';
 }
 
 async function saveGameFilters() {
-  const current = state.gameFilters[state.selectedGameId] || { surf: false, rod: 'none', trade_link: 'all', active_section_id: null };
+  const gameId = state.selectedGameId;
+  const current = state.gameFilters[gameId] || { surf: false, rod: 'none', trade_link: 'all', active_section_id: null };
+  
+  // Save to localStorage
+  localStorage.setItem(`pokechecklist_${gameId}_surf`, current.surf);
+  localStorage.setItem(`pokechecklist_${gameId}_rod`, current.rod);
+  localStorage.setItem(`pokechecklist_${gameId}_trade_link`, current.trade_link);
+  if (current.active_section_id) {
+    localStorage.setItem(`pokechecklist_active_section_${gameId}`, current.active_section_id);
+  }
+  localStorage.setItem(`pokechecklist_active_route_${gameId}_${current.active_section_id || 'All'}`, state.selectedSubTab || 'All');
+  localStorage.setItem(`pokechecklist_${gameId}_show_headbutt`, state.filters.showHeadbutt);
+  localStorage.setItem(`pokechecklist_${gameId}_show_evolutions`, state.filters.showEvolutions);
+  localStorage.setItem(`pokechecklist_${gameId}_time_of_day`, state.filters.timeOfDay);
+
+  // Save to server
   try {
     await fetch('/api/settings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        game_id: state.selectedGameId,
+        game_id: gameId,
         surf: current.surf,
         rod: current.rod,
         trade_link: current.trade_link,
@@ -346,20 +434,21 @@ function updateDefaultGameButton() {
   const savedDefault = localStorage.getItem('default_game');
   if (savedDefault === state.selectedGameId) {
     setDefaultGameBtn.classList.add('is-default');
-    setDefaultGameBtn.textContent = 'Default Game';
+    setDefaultGameBtn.title = 'This is your default game';
   } else {
     setDefaultGameBtn.classList.remove('is-default');
-    setDefaultGameBtn.textContent = 'Set Default Game';
+    setDefaultGameBtn.title = 'Set as default game';
   }
 }
 
-// Load games from API and populate selector
+// Load games from API and populate custom selector
 async function loadGames() {
   try {
     const response = await fetch('/api/games');
     state.games = await response.json();
     
-    gameSelect.innerHTML = '';
+    if (!dropdownMenu) return;
+    dropdownMenu.innerHTML = '';
     
     const groups = [
       { label: 'Gen 1 (Kanto)', ids: ['red', 'blue', 'yellow'] },
@@ -369,31 +458,117 @@ async function loadGames() {
     ];
 
     groups.forEach(group => {
-      const optgroup = document.createElement('optgroup');
-      optgroup.label = group.label;
-      
-      group.ids.forEach(id => {
-        const game = state.games.find(g => g.id === id);
-        if (game) {
-          const option = document.createElement('option');
-          option.value = game.id;
-          option.textContent = game.name;
-          optgroup.appendChild(option);
+      const activeGroupGames = group.ids.map(id => state.games.find(g => g.id === id)).filter(Boolean);
+      if (activeGroupGames.length === 0) return;
+
+      const groupLabel = document.createElement('div');
+      groupLabel.className = 'dropdown-group-label';
+      groupLabel.textContent = group.label;
+      dropdownMenu.appendChild(groupLabel);
+
+      activeGroupGames.forEach(game => {
+        const option = document.createElement('div');
+        option.className = 'dropdown-option';
+        if (game.id === state.selectedGameId) {
+          option.classList.add('active');
         }
+        option.setAttribute('role', 'option');
+        option.setAttribute('data-value', game.id);
+
+        const color = gameColors[game.id] || '#71717a';
+        const pct = game.percentage || 0;
+        
+        option.innerHTML = `
+          <div class="dropdown-option-bar" style="width: ${pct}%; background-color: ${color};"></div>
+          <span>${game.name}</span>
+          <span class="dropdown-option-percentage">${pct}%</span>
+        `;
+
+        option.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          selectGame(game.id);
+          dropdownMenu.classList.add('hidden');
+          dropdownContainer.classList.remove('open');
+        });
+
+        dropdownMenu.appendChild(option);
       });
-      
-      if (optgroup.children.length > 0) {
-        gameSelect.appendChild(optgroup);
-      }
     });
+    
+    updateDropdownTrigger();
   } catch (err) {
     console.error('Failed to load games:', err);
   }
 }
 
+function selectGame(gameId) {
+  state.selectedGameId = gameId;
+  localStorage.setItem('default_game', gameId);
+  updateDropdownTrigger();
+  
+  // Highlight active option in menu
+  const options = document.querySelectorAll('.dropdown-option');
+  options.forEach(opt => {
+    if (opt.getAttribute('data-value') === gameId) {
+      opt.classList.add('active');
+    } else {
+      opt.classList.remove('active');
+    }
+  });
+
+  handleGameChange();
+}
+
+function updateDropdownTrigger() {
+  const game = state.games.find(g => g.id === state.selectedGameId);
+  if (!game) return;
+
+  const selectedName = document.getElementById('dropdown-selected-name');
+  const selectedPercentage = document.getElementById('dropdown-selected-percentage');
+  const triggerBar = document.getElementById('dropdown-trigger-bar');
+
+  if (selectedName) selectedName.textContent = game.name;
+  if (selectedPercentage) selectedPercentage.textContent = `${game.percentage || 0}%`;
+  
+  if (triggerBar) {
+    const color = gameColors[game.id] || '#38bdf8';
+    triggerBar.style.width = `${game.percentage || 0}%`;
+    triggerBar.style.backgroundColor = color;
+  }
+}
+
+async function updateDropdownPercentages() {
+  try {
+    const response = await fetch('/api/games');
+    state.games = await response.json();
+    
+    updateDropdownTrigger();
+
+    state.games.forEach(game => {
+      const option = document.querySelector(`.dropdown-option[data-value="${game.id}"]`);
+      if (option) {
+        const bar = option.querySelector('.dropdown-option-bar');
+        const pctSpan = option.querySelector('.dropdown-option-percentage');
+        
+        if (bar) bar.style.width = `${game.percentage || 0}%`;
+        if (pctSpan) pctSpan.textContent = `${game.percentage || 0}%`;
+      }
+    });
+  } catch (err) {
+    console.error('Failed to update dropdown percentages:', err);
+  }
+}
+
+function updateActiveGameTheme(gameId) {
+  const activeColor = gameColors[gameId] || '#38bdf8';
+  document.documentElement.style.setProperty('--game-active-color', activeColor);
+  document.documentElement.style.setProperty('--game-active-color-glow', activeColor + '33');
+}
+
 // Handle switching to a different game
 async function handleGameChange() {
   try {
+    updateActiveGameTheme(state.selectedGameId);
     await loadAndSyncGameFilters();
     // Clear search when switching game
     const searchInput = document.getElementById('global-search-input');
@@ -473,6 +648,7 @@ async function handleGameChange() {
     
     // 5. Update progress bar
     calculateAndRenderProgress();
+    updateDropdownPercentages();
   } catch (err) {
     console.error('Error switching game:', err);
   }
@@ -503,8 +679,10 @@ function renderSectionPills() {
 
     const titleText = section.name.replace('Pre-', 'Pre ').replace('Post-', 'Post ');
     pill.innerHTML = `
-      <span class="pill-title">${titleText}</span>
-      <span class="pill-ratio">${completedCount} / ${totalCount}</span>
+      <div class="nav-pill-inner">
+        <span class="pill-title">${titleText}</span>
+        <span class="pill-ratio">${completedCount} / ${totalCount}</span>
+      </div>
     `;
     
     if (totalCount > 0 && completedCount === totalCount) {
@@ -522,7 +700,11 @@ function renderSectionPills() {
 // Select and display a checklist section
 function selectSection(sectionId) {
   state.selectedSectionId = sectionId;
-  state.selectedSubTab = 'All';
+  
+  // Restore saved sub-tab route for this section
+  const savedRoute = localStorage.getItem(`pokechecklist_active_route_${state.selectedGameId}_${sectionId}`) || 'All';
+  state.selectedSubTab = savedRoute;
+
   if (!state.gameFilters[state.selectedGameId]) {
     state.gameFilters[state.selectedGameId] = { surf: false, rod: 'none', trade_link: 'all', active_section_id: null };
   }
@@ -546,6 +728,10 @@ function selectSection(sectionId) {
   if (section) {
     sectionTitle.textContent = section.name;
     sectionDesc.textContent = section.description || '';
+    // Update eyebrow label with section index
+    const idx = state.sections.findIndex(s => s.id === sectionId);
+    const eyebrow = document.getElementById('section-eyebrow');
+    if (eyebrow) eyebrow.textContent = `Milestone ${idx + 1} of ${state.sections.length}`;
   }
 
   // Render cards
@@ -603,7 +789,7 @@ function getActionIconHtml(actionType, locationDetails, notes) {
       cls = 'action-evolve';
     }
   } else if (actionType === 'GIFT') {
-    icon = '/icons/icons8-grass-100.png';
+    icon = '/icons/icons8-holding-box-100.png';
     label = 'Gift';
     cls = 'action-gift';
   } else if (actionType === 'BREED') {
@@ -617,6 +803,270 @@ function getActionIconHtml(actionType, locationDetails, notes) {
   }
   return '';
 }
+
+const kantoOrder = [
+  'Pallet Town', 'Route 1', 'Viridian City', 'Route 22', 'Route 2', 'Viridian Forest',
+  'Pewter City', 'Route 3', 'Mt. Moon', 'Route 4', 'Cerulean City', 'Route 24', 'Route 25',
+  'Route 5', 'Route 6', 'Vermilion City', 'Route 11', "Diglett's Cave", 'Route 9', 'Route 10',
+  'Rock Tunnel', 'Lavender Town', 'Pokémon Tower', 'Route 7', 'Route 8', 'Celadon City',
+  'Route 16', 'Route 17', 'Route 18', 'Fuchsia City', 'Safari Zone', 'Route 12', 'Route 13',
+  'Route 14', 'Route 15', 'Route 19', 'Route 20', 'Seafoam Islands', 'Cinnabar Island',
+  'Pokémon Mansion', 'Route 21', 'Power Plant', 'Route 23', 'Victory Road', 'Indigo Plateau',
+  'Cerulean Cave'
+];
+
+const johtoOrder = [
+  'New Bark Town', 'Route 29', 'Cherrygrove City', 'Route 30', 'Route 31', 'Dark Cave',
+  'Violet City', 'Sprout Tower', 'Route 32', 'Ruins of Alph', 'Union Cave', 'Route 33',
+  'Azalea Town', 'Slowpoke Well', 'Ilex Forest', 'Route 34', 'Goldenrod City', 'National Park',
+  'Route 35', 'Route 36', 'Route 37', 'Ecruteak City', 'Burned Tower', 'Tin Tower',
+  'Bell Tower', 'Route 38', 'Route 39', 'Olivine City', 'Route 40', 'Whirl Islands',
+  'Route 41', 'Cianwood City', 'Route 42', 'Mt. Mortar', 'Mahogany Town', 'Route 43',
+  'Lake of Rage', 'Route 44', 'Ice Path', 'Blackthorn City', "Dragon's Den", 'Route 45',
+  'Route 46', 'Tohjo Falls', 'Route 27', 'Route 26', 'Victory Road', 'Indigo Plateau',
+  'Mt. Silver', 'Route 28'
+];
+
+const hoennOrder = [
+  'Littleroot Town', 'Route 101', 'Oldale Town', 'Route 102', 'Petalburg City', 'Route 104',
+  'Petalburg Woods', 'Rustboro City', 'Route 115', 'Route 116', 'Rusturf Tunnel',
+  'Dewford Town', 'Granite Cave', 'Route 106', 'Route 107', 'Route 108', 'Route 109',
+  'Slateport City', 'Route 110', 'Trick House', 'New Mauville', 'Mauville City', 'Route 117',
+  'Verdanturf Town', 'Route 111', 'Route 112', 'Fiery Path', 'Route 113', 'Fallarbor Town',
+  'Route 114', 'Meteor Falls', 'Jagged Pass', 'Mt. Chimney', 'Lavaridge Town', 'Route 118',
+  'Route 119', 'Fortree City', 'Route 120', 'Route 121', 'Safari Zone', 'Lilycove City',
+  'Route 122', 'Mt. Pyre', 'Route 123', 'Aqua Hideout', 'Magma Hideout', 'Route 124',
+  'Mossdeep City', 'Route 125', 'Shoal Cave', 'Space Center', 'Route 127', 'Route 128',
+  'Seafloor Cavern', 'Route 126', 'Sootopolis City', 'Cave of Origin', 'Route 129',
+  'Route 130', 'Route 131', 'Sky Pillar', 'Pacifidlog Town', 'Route 132', 'Route 133',
+  'Route 134', 'Ever Grande City', 'Victory Road', 'Pokémon League', 'Battle Frontier'
+];
+
+function getLocationProgressionScore(locName, region) {
+  const cleanName = locName.replace(/\s*\([^)]+\)/g, '').trim().toLowerCase();
+  
+  let orderArray = kantoOrder;
+  if (region === 'Johto') orderArray = johtoOrder;
+  else if (region === 'Hoenn') orderArray = hoennOrder;
+  
+  const idx = orderArray.findIndex(name => {
+    const lowerName = name.toLowerCase();
+    return lowerName.includes(cleanName) || cleanName.includes(lowerName);
+  });
+  
+  return idx !== -1 ? idx : 999;
+}
+
+function parseLocations(locationDetails) {
+  if (!locationDetails) return [];
+  
+  let suffix = '';
+  let mainText = locationDetails.trim();
+  const parenMatch = mainText.match(/\s*\(([^)]+)\)$/);
+  if (parenMatch) {
+    suffix = ` (${parenMatch[1]})`;
+    mainText = mainText.slice(0, parenMatch.index).trim();
+  }
+  
+  const parts = [];
+  let depth = 0;
+  let current = '';
+  for (const ch of mainText) {
+    if (ch === '(') depth++;
+    if (ch === ')') depth--;
+    if ((ch === ',' || ch === '&') && depth === 0) {
+      parts.push(current.trim());
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  if (current.trim()) parts.push(current.trim());
+  
+  return parts
+    .map(p => {
+      let cleaned = p.replace(/\s*\.\.\.\s*$/, '').trim();
+      if (suffix && !cleaned.includes(suffix.trim())) {
+        cleaned += suffix;
+      }
+      return cleaned;
+    })
+    .filter(Boolean);
+}
+
+function parseEncounterNotes(locationDetails, notes, gameId) {
+  if (!locationDetails) return [];
+
+  let rawEncounters = [];
+
+  // New format: each note segment is prefixed with @Location:method
+  if (notes && notes.includes('@') && notes.includes(':')) {
+    const noteSegments = notes.split('|').map(n => n.trim()).filter(Boolean);
+    const prefixedSegs = noteSegments.filter(s => s.startsWith('@'));
+
+    if (prefixedSegs.length > 0) {
+      rawEncounters = prefixedSegs.map(seg => {
+        // Format: @CanonicalLocation:Method [Lvl X, Y%]
+        const colonIdx = seg.indexOf(':');
+        const location = seg.slice(1, colonIdx).trim(); // strip '@'
+        const rest = seg.slice(colonIdx + 1).trim();
+        return { location, ...parseNoteMeta(rest) };
+      });
+    }
+  }
+
+  // Legacy / fallback: flat pipe-separated notes without location prefix
+  if (rawEncounters.length === 0) {
+    const locations = parseLocations(locationDetails);
+
+    if (!notes || !notes.includes('|')) {
+      const meta = parseNoteMeta(notes || '');
+      rawEncounters = locations.map(loc => ({ location: loc, ...meta }));
+    } else {
+      const noteSegments = notes.split('|').map(n => n.trim());
+
+      if (noteSegments.length === locations.length) {
+        rawEncounters = locations.map((loc, i) => ({
+          location: loc,
+          ...parseNoteMeta(noteSegments[i])
+        }));
+      } else {
+        // Cannot reliably map — just show each location with a generic entry
+        rawEncounters = locations.map(loc => ({ location: loc, method: '', level: '', rate: '' }));
+      }
+    }
+  }
+
+  if (gameId) {
+    let region = 'Kanto';
+    if (['gold', 'silver', 'crystal'].includes(gameId)) region = 'Johto';
+    if (['ruby', 'sapphire', 'emerald'].includes(gameId)) region = 'Hoenn';
+
+    rawEncounters.sort((a, b) => {
+      const scoreA = getLocationProgressionScore(a.location, region);
+      const scoreB = getLocationProgressionScore(b.location, region);
+      return scoreA - scoreB;
+    });
+  }
+
+  // Filter raw encounters by time of day
+  const locationsWithTime = parseLocations(locationDetails);
+  rawEncounters = rawEncounters.filter(enc => {
+    const fullLoc = locationsWithTime.find(l => {
+      const canonical = l.replace(/\s*\.\.\.\s*/g, '').replace(/\s*\([^)]*\)\s*$/, '').trim();
+      return canonical === enc.location;
+    });
+    if (fullLoc) {
+      return passesTimeOfDayFilter({ location_details: fullLoc }, state.filters.timeOfDay);
+    }
+    return true;
+  });
+
+  const uniqueEncounters = [];
+  const seenEnc = new Set();
+  for (const enc of rawEncounters) {
+    const key = `${enc.location}|${enc.method}|${enc.level}|${enc.rate}`;
+    if (!seenEnc.has(key)) {
+      seenEnc.add(key);
+      uniqueEncounters.push(enc);
+    }
+  }
+
+  return uniqueEncounters;
+}
+
+/**
+ * Normalize a method name — collapses Headbutt variants, cleans whitespace.
+ */
+function normalizeMethod(method) {
+  if (!method) return '';
+  // Headbutt low / normal / high → Headbutt
+  const hb = method.replace(/\bheadbutt\s+(low|normal|high)\b/gi, 'Headbutt');
+  // Capitalise first letter
+  return hb.trim().replace(/^./, c => c.toUpperCase());
+}
+
+/**
+ * Parse a level string like "Lv 3" or "Lv 3-6" into { min, max }.
+ */
+function parseLevelRange(lvl) {
+  if (!lvl) return null;
+  const m = lvl.match(/(\d+)(?:-(\d+))?/);
+  if (!m) return null;
+  const min = parseInt(m[1], 10);
+  const max = m[2] ? parseInt(m[2], 10) : min;
+  return { min, max };
+}
+
+/**
+ * Merge two level strings into a combined range, e.g. "Lv 3" + "Lv 6" → "Lv 3-6".
+ */
+function mergeLevels(a, b) {
+  const ra = parseLevelRange(a);
+  const rb = parseLevelRange(b);
+  if (!ra || !rb) return a || b;
+  const min = Math.min(ra.min, rb.min);
+  const max = Math.max(ra.max, rb.max);
+  return min === max ? `Lv ${min}` : `Lv ${min}-${max}`;
+}
+
+/**
+ * Group flat parsed encounters by location for clean categorized display.
+ * Within each location group, normalise method names and deduplicate/merge
+ * entries with the same method but different level or rate values.
+ */
+function groupEncounters(encounters) {
+  const groups = [];
+  const groupMap = {};
+
+  encounters.forEach(enc => {
+    const locKey = enc.location;
+    if (!groupMap[locKey]) {
+      groupMap[locKey] = { location: locKey, methods: [] };
+      groups.push(groupMap[locKey]);
+    }
+    const normMethod = normalizeMethod(enc.method);
+    // Try to merge with an existing entry of the same method
+    const existing = groupMap[locKey].methods.find(m => m.method === normMethod);
+    if (existing) {
+      // Merge level ranges
+      if (enc.level && enc.level !== existing.level) {
+        existing.level = mergeLevels(existing.level, enc.level);
+      }
+      // Keep the highest rate (or the first one if they differ)
+      // We just keep whatever is already there; no need to change
+    } else {
+      groupMap[locKey].methods.push({
+        method: normMethod,
+        level: enc.level,
+        rate: enc.rate
+      });
+    }
+  });
+
+  return groups;
+}
+
+/**
+ * Parse a single note segment like "Walk [Lvl 3-6, 50%]" or "Gift [Lvl 5, 100%]"
+ * Returns { method, level, rate }
+ */
+function parseNoteMeta(noteStr) {
+  if (!noteStr) return { method: '', level: '', rate: '' };
+  const bracketMatch = noteStr.match(/\[([^\]]+)\]/);
+  let method = noteStr.replace(/\[.*\]/, '').trim();
+  let level = '';
+  let rate = '';
+  if (bracketMatch) {
+    const inner = bracketMatch[1];
+    const lvlMatch = inner.match(/Lvl\s*([\d\-]+)/i);
+    const rateMatch = inner.match(/(\d+)%/);
+    if (lvlMatch) level = `Lv ${lvlMatch[1]}`;
+    if (rateMatch) rate = `${rateMatch[1]}%`;
+  }
+  return { method, level, rate };
+}
+
 function getRegionForRoute(routeNum, gameId) {
   // Hoenn routes: 101-134
   if (routeNum >= 101 && routeNum <= 134) {
@@ -640,34 +1090,143 @@ function getRegionForRoute(routeNum, gameId) {
 
 function linkifyLocation(locationText, gameId) {
   if (!locationText) return '';
-  // Match "Route \d+" followed by optional list of routes separated by comma, ampersand, or "and"
-  const routeListRegex = /Route\s+\d+(?:(?:\s*(?:,|&|and)\s*)\d+)*/gi;
+
+  const landmarks = [
+    // Cities and Towns
+    { name: 'Pallet Town', page: 'Pallet_Town' },
+    { name: 'Viridian City', page: 'Viridian_City' },
+    { name: 'Pewter City', page: 'Pewter_City' },
+    { name: 'Cerulean City', page: 'Cerulean_City' },
+    { name: 'Vermilion City', page: 'Vermilion_City' },
+    { name: 'Lavender Town', page: 'Lavender_Town' },
+    { name: 'Celadon City', page: 'Celadon_City' },
+    { name: 'Saffron City', page: 'Saffron_City' },
+    { name: 'Fuchsia City', page: 'Fuchsia_City' },
+    { name: 'Cinnabar Island', page: 'Cinnabar_Island' },
+    { name: 'Indigo Plateau', page: 'Indigo_Plateau' },
+    { name: 'New Bark Town', page: 'New_Bark_Town' },
+    { name: 'Cherrygrove City', page: 'Cherrygrove_City' },
+    { name: 'Violet City', page: 'Violet_City' },
+    { name: 'Azalea Town', page: 'Azalea_Town' },
+    { name: 'Goldenrod City', page: 'Goldenrod_City' },
+    { name: 'Ecruteak City', page: 'Ecruteak_City' },
+    { name: 'Olivine City', page: 'Olivine_City' },
+    { name: 'Cianwood City', page: 'Cianwood_City' },
+    { name: 'Mahogany Town', page: 'Mahogany_Town' },
+    { name: 'Blackthorn City', page: 'Blackthorn_City' },
+    { name: 'Littleroot Town', page: 'Littleroot_Town' },
+    { name: 'Oldale Town', page: 'Oldale_Town' },
+    { name: 'Petalburg City', page: 'Petalburg_City' },
+    { name: 'Rustboro City', page: 'Rustboro_City' },
+    { name: 'Dewford Town', page: 'Dewford_Town' },
+    { name: 'Slateport City', page: 'Slateport_City' },
+    { name: 'Mauville City', page: 'Mauville_City' },
+    { name: 'Verdanturf Town', page: 'Verdanturf_Town' },
+    { name: 'Fallarbor Town', page: 'Fallarbor_Town' },
+    { name: 'Lavaridge Town', page: 'Lavaridge_Town' },
+    { name: 'Fortree City', page: 'Fortree_City' },
+    { name: 'Lilycove City', page: 'Lilycove_City' },
+    { name: 'Mossdeep City', page: 'Mossdeep_City' },
+    { name: 'Sootopolis City', page: 'Sootopolis_City' },
+    { name: 'Pacifidlog Town', page: 'Pacifidlog_Town' },
+    { name: 'Ever Grande City', page: 'Ever_Grande_City' },
+
+    // Landmarks
+    { name: 'Pokémon Mansion', page: 'Pokémon_Mansion' },
+    { name: 'Pokemon Mansion', page: 'Pokémon_Mansion' },
+    { name: 'Cerulean Cave', page: 'Cerulean_Cave' },
+    { name: 'Power Plant', page: 'Power_Plant_(Kanto)' },
+    { name: 'Seafoam Islands', page: 'Seafoam_Islands' },
+    { name: 'Mt. Moon', page: 'Mt._Moon' },
+    { name: 'Mt Moon', page: 'Mt._Moon' },
+    { name: 'Rock Tunnel', page: 'Rock_Tunnel' },
+    { name: 'Victory Road', page: ['red', 'blue', 'yellow', 'firered', 'leafgreen'].includes(gameId) ? 'Victory_Road_(Kanto)' : 'Victory_Road' },
+    { name: 'Viridian Forest', page: 'Viridian_Forest' },
+    { name: 'Safari Zone', page: ['ruby', 'sapphire', 'emerald'].includes(gameId) ? 'Safari_Zone_(Hoenn)' : 'Safari_Zone_(Kanto)' },
+    { name: "Diglett's Cave", page: "Diglett's_Cave" },
+    { name: "Digletts Cave", page: "Diglett's_Cave" },
+    { name: 'Pokémon Tower', page: 'Pokémon_Tower' },
+    { name: 'Pokemon Tower', page: 'Pokémon_Tower' },
+    { name: 'Ruins of Alph', page: 'Ruins_of_Alph' },
+    { name: 'Slowpoke Well', page: 'Slowpoke_Well' },
+    { name: 'Ilex Forest', page: 'Ilex_Forest' },
+    { name: 'National Park', page: 'National_Park_(Johto)' },
+    { name: 'Burned Tower', page: 'Burned_Tower' },
+    { name: 'Bell Tower', page: 'Bell_Tower' },
+    { name: 'Tin Tower', page: 'Bell_Tower' },
+    { name: 'Whirl Islands', page: 'Whirl_Islands' },
+    { name: 'Mt. Mortar', page: 'Mt._Mortar' },
+    { name: 'Mt Mortar', page: 'Mt._Mortar' },
+    { name: 'Lake of Rage', page: 'Lake_of_Rage' },
+    { name: 'Lake Of Rage', page: 'Lake_of_Rage' },
+    { name: 'Ice Path', page: 'Ice_Path' },
+    { name: "Dragon's Den", page: "Dragon's_Den" },
+    { name: "Dragons Den", page: "Dragon's_Den" },
+    { name: 'Tohjo Falls', page: 'Tohjo_Falls' },
+    { name: 'Mt. Silver', page: 'Mt._Silver' },
+    { name: 'Mt Silver', page: 'Mt._Silver' },
+    { name: 'Petalburg Woods', page: 'Petalburg_Woods' },
+    { name: 'Rusturf Tunnel', page: 'Rusturf_Tunnel' },
+    { name: 'Granite Cave', page: 'Granite_Cave' },
+    { name: 'New Mauville', page: 'New_Mauville' },
+    { name: 'Fiery Path', page: 'Fiery_Path' },
+    { name: 'Meteor Falls', page: 'Meteor_Falls' },
+    { name: 'Jagged Pass', page: 'Jagged_Pass' },
+    { name: 'Mt. Chimney', page: 'Mt._Chimney' },
+    { name: 'Mt Chimney', page: 'Mt._Chimney' },
+    { name: 'Mt. Pyre', page: 'Mt._Pyre' },
+    { name: 'Mt Pyre', page: 'Mt._Pyre' },
+    { name: 'Shoal Cave', page: 'Shoal_Cave' },
+    { name: 'Seafloor Cavern', page: 'Seafloor_Cavern' },
+    { name: 'Cave of Origin', page: 'Cave_of_Origin' },
+    { name: 'Sky Pillar', page: 'Sky_Pillar' }
+  ];
+
+  const escapeRegExp = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const sortedLandmarks = [...landmarks].sort((a, b) => b.name.length - a.name.length);
   
-  return locationText.replace(routeListRegex, (match) => {
-    const numbers = match.match(/\d+/g);
-    if (!numbers) return match;
-    
-    const separators = match.split(/\d+/);
-    let result = '';
-    
-    for (let i = 0; i < numbers.length; i++) {
-      const numStr = numbers[i];
-      const routeNum = parseInt(numStr, 10);
-      const region = getRegionForRoute(routeNum, gameId);
-      const pageName = `${region}_Route_${routeNum}`;
-      const url = `https://bulbapedia.bulbagarden.net/wiki/${pageName}`;
+  const routeRegexStr = `Route\\s+\\d+(?:(?:\\s*(?:,|&|and)\\s*)\\d+)*`;
+  const landmarkRegexStr = sortedLandmarks.map(l => escapeRegExp(l.name)).join('|');
+  const combinedRegex = new RegExp(`(${routeRegexStr})|(${landmarkRegexStr})`, 'gi');
+
+  return locationText.replace(combinedRegex, (match, routeMatch, landmarkMatch) => {
+    if (routeMatch) {
+      const numbers = routeMatch.match(/\d+/g);
+      if (!numbers) return match;
       
-      const prefix = separators[i] || '';
-      if (i === 0) {
-        const cleanPrefix = prefix.replace(/Route\s*/i, '');
-        const routeWord = prefix.match(/Route\s*/i)?.[0] || 'Route ';
-        result += cleanPrefix + `<a href="${url}" target="_blank" class="location-link" rel="noopener noreferrer" onclick="event.stopPropagation()">${routeWord}${numStr}</a>`;
-      } else {
-        result += prefix + `<a href="${url}" target="_blank" class="location-link" rel="noopener noreferrer" onclick="event.stopPropagation()">${numStr}</a>`;
+      const separators = routeMatch.split(/\d+/);
+      let result = '';
+      
+      for (let i = 0; i < numbers.length; i++) {
+        const numStr = numbers[i];
+        const routeNum = parseInt(numStr, 10);
+        const region = getRegionForRoute(routeNum, gameId);
+        const pageName = `${region}_Route_${routeNum}`;
+        const url = `https://bulbapedia.bulbagarden.net/wiki/${pageName}`;
+        
+        const prefix = separators[i] || '';
+        if (i === 0) {
+          const cleanPrefix = prefix.replace(/Route\s*/i, '');
+          const routeWord = prefix.match(/Route\s*/i)?.[0] || 'Route ';
+          result += cleanPrefix + `<a href="${url}" target="_blank" class="location-link" rel="noopener noreferrer" onclick="event.stopPropagation()">${routeWord}${numStr}</a>`;
+        } else {
+          result += prefix + `<a href="${url}" target="_blank" class="location-link" rel="noopener noreferrer" onclick="event.stopPropagation()">${numStr}</a>`;
+        }
+      }
+      result += separators[separators.length - 1] || '';
+      return result;
+    }
+    
+    if (landmarkMatch) {
+      const landmark = sortedLandmarks.find(l => l.name.toLowerCase() === landmarkMatch.toLowerCase());
+      if (landmark) {
+        const page = typeof landmark.page === 'function' ? landmark.page(gameId) : landmark.page;
+        const url = `https://bulbapedia.bulbagarden.net/wiki/${page}`;
+        return `<a href="${url}" target="_blank" class="location-link" rel="noopener noreferrer" onclick="event.stopPropagation()">${landmarkMatch}</a>`;
       }
     }
-    result += separators[separators.length - 1] || '';
-    return result;
+    
+    return match;
   });
 }
 
@@ -835,25 +1394,40 @@ function getCleanLocationNames(req, pokemonId, visited = new Set()) {
     return ['Breed'];
   }
   
-  const details = req.location_details;
-  const cleanMatch = details.match(/^([^(]+)/);
-  const name = cleanMatch ? cleanMatch[1].trim() : details;
-  
-  if (/Route/i.test(name)) {
-    const parts = name.split(/,|\band\b|\bor\b|&/i).map(p => p.trim());
-    return parts.map(p => {
-      const routeMatch = p.match(/Route\s+(\d+)/i);
-      if (routeMatch) {
-        return `Route ${routeMatch[1]}`;
-      }
-      if (/^\d+$/.test(p)) {
-        return `Route ${p}`;
-      }
-      return p;
-    });
+  // Robust parsing of CATCH / GIFT location details to extract all unique route/location names
+  const details = req.location_details || '';
+  const parts = [];
+  let depth = 0;
+  let current = '';
+  for (const ch of details) {
+    if (ch === '(') depth++;
+    if (ch === ')') depth--;
+    if (ch === ',' && depth === 0) {
+      parts.push(current.trim());
+      current = '';
+    } else {
+      current += ch;
+    }
   }
+  if (current.trim()) parts.push(current.trim());
   
-  return [name];
+  const locations = [];
+  parts.forEach(part => {
+    let clean = part.replace(/\([^)]*\)/g, '').replace(/\.\.\./g, '').trim();
+    const subParts = clean.split(/&|\band\b/gi).map(p => p.trim());
+    subParts.forEach(sp => {
+      if (sp) {
+        const routeMatch = sp.match(/Route\s+(\d+)/i);
+        if (routeMatch) {
+          locations.push(`Route ${routeMatch[1]}`);
+        } else {
+          locations.push(sp);
+        }
+      }
+    });
+  });
+  
+  return Array.from(new Set(locations));
 }
 
 
@@ -964,6 +1538,7 @@ function renderSubTabs(sectionItems) {
       btn.classList.add('active');
       
       state.selectedSubTab = loc;
+      saveGameFilters();
       renderChecklistCards();
     });
     subTabsContainer.appendChild(btn);
@@ -1094,9 +1669,9 @@ function renderChecklistCards() {
     const toInsert = []; // { index, ancestors[] }
 
     filteredItems.forEach((item, idx) => {
-      // Only for carry-over mid-chain items
-      if (item.section_id === state.selectedSectionId) return;
+      // Only inject ancestors for stage-2+ Pokémon whose stage-1 root is missing
       if ((item.evolution_stage || 1) <= 1) return;
+
 
       const ancestors = [];
       let currentId = item.pokemon_id;
@@ -1122,6 +1697,8 @@ function renderChecklistCards() {
     });
   }
 
+
+
   // ── Build all card elements ─────────────────────────────
   const cardElements = filteredItems.map((item, index) => {
     const card = document.createElement('div');
@@ -1139,6 +1716,72 @@ function renderChecklistCards() {
 
     const rowsHtml = item.requirements.map(req => {
       const actionIconHtml = getActionIconHtml(req.action_type, req.location_details, req.notes);
+
+      // For CATCH/GIFT: parse each location+note as a separate sub-row
+      if ((req.action_type === 'CATCH' || req.action_type === 'GIFT') && req.notes) {
+        const encounters = parseEncounterNotes(req.location_details, req.notes, state.selectedGameId);
+        const groups = groupEncounters(encounters);
+        
+        const groupsHtml = groups.map((group, groupIdx) => {
+          const isTabMatch = state.selectedSubTab !== 'All' && group.location.toLowerCase().includes(state.selectedSubTab.toLowerCase());
+          const isHiddenClass = (groupIdx >= 5 && !isTabMatch) ? 'hidden-encounter-group hidden' : '';
+          const highlightClass = '';
+          
+          const methodsHtml = group.methods.map(m => {
+            const levelHtml = m.level ? `<span class="enc-level">${m.level}</span>` : '';
+            const rateHtml = m.rate ? `<span class="enc-rate">${m.rate}</span>` : '';
+            return `
+              <div class="method-badge">
+                ${m.method ? `<span class="enc-method">${m.method}</span>` : ''}
+                ${levelHtml}
+                ${rateHtml}
+              </div>
+            `;
+          }).join('');
+          
+          return `
+            <div class="encounter-location-group ${isHiddenClass} ${highlightClass}">
+              <div class="location-row">
+                ${actionIconHtml}
+                <span class="location-text">${linkifyLocation(group.location, state.selectedGameId)}</span>
+              </div>
+              <div class="methods-inline">
+                ${methodsHtml}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        const hiddenCount = groups.filter((g, idx) => {
+          const isTabMatch = state.selectedSubTab !== 'All' && g.location.toLowerCase().includes(state.selectedSubTab.toLowerCase());
+          return idx >= 5 && !isTabMatch;
+        }).length;
+        
+        let expandBtnHtml = '';
+        if (hiddenCount > 0) {
+          expandBtnHtml = `
+            <button class="expand-encounters-btn collapsed" onclick="event.stopPropagation();">
+              Show ${hiddenCount} more locations...
+            </button>
+          `;
+        }
+
+        return `
+          <div class="checklist-encounter-item ${req.completed ? 'checked' : ''}" data-requirement-id="${req.requirement_id}">
+            <div class="checkbox-container">
+              <div class="custom-checkbox"></div>
+            </div>
+            <div class="encounter-info">
+              <div class="encounter-groups-container">
+                ${groupsHtml}
+              </div>
+              ${expandBtnHtml}
+            </div>
+          </div>
+        `;
+      }
+
+      // For EVOLVE/TRADE/BREED: use notes as plain text
       const notesHtml = req.notes ? `<div class="notes-row">${req.notes}</div>` : '';
       return `
         <div class="checklist-encounter-item ${req.completed ? 'checked' : ''}" data-requirement-id="${req.requirement_id}">
@@ -1203,10 +1846,14 @@ function renderChecklistCards() {
     card.innerHTML = `
       <div class="card-content">
         <div class="pokemon-header">
-          <span class="dex-number">#${paddedDex}</span>
-          <span class="pokemon-name">${item.pokemon_name}</span>
-          ${carryOverHtml}
-          <div class="pokemon-types">${typesHtml}</div>
+          <div class="pokemon-title-row">
+            <span class="dex-number">#${paddedDex}</span>
+            <span class="pokemon-name">${item.pokemon_name}</span>
+          </div>
+          <div class="pokemon-header-badges">
+            ${carryOverHtml}
+            <div class="pokemon-types">${typesHtml}</div>
+          </div>
         </div>
         <div class="checklist-encounters-list">
           ${rowsHtml}
@@ -1221,9 +1868,33 @@ function renderChecklistCards() {
     // Click listener for checking/unchecking individual encounters
     card.querySelectorAll('.checklist-encounter-item').forEach(encItem => {
       encItem.addEventListener('click', async (e) => {
+        if (e.target.closest('.expand-encounters-btn')) {
+          return;
+        }
         e.stopPropagation();
         const reqId = parseInt(encItem.dataset.requirementId);
         await toggleItemCompletion(reqId);
+      });
+    });
+
+    card.querySelectorAll('.expand-encounters-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const infoContainer = btn.closest('.encounter-info');
+        const hiddenGroups = infoContainer.querySelectorAll('.hidden-encounter-group');
+        const isCollapsed = btn.classList.contains('collapsed');
+        
+        if (isCollapsed) {
+          hiddenGroups.forEach(g => g.classList.remove('hidden'));
+          btn.textContent = 'Show less';
+          btn.classList.remove('collapsed');
+          btn.classList.add('expanded');
+        } else {
+          hiddenGroups.forEach(g => g.classList.add('hidden'));
+          btn.textContent = `Show ${hiddenGroups.length} more locations...`;
+          btn.classList.remove('expanded');
+          btn.classList.add('collapsed');
+        }
       });
     });
 
@@ -1642,6 +2313,7 @@ async function toggleItemCompletion(requirementId, forcedStatus = null) {
   updateCardDOM(requirementId, pokemonId, newStatus === 1, newCaughtGames);
   calculateAndRenderProgress();
   renderSectionPills();
+  updateDropdownPercentages();
 
   try {
     const response = await fetch('/api/progress', {
@@ -1665,6 +2337,7 @@ async function toggleItemCompletion(requirementId, forcedStatus = null) {
       
       // Update DOM with authoritative data
       updateCardDOM(requirementId, pokemonId, newStatus === 1, result.caught_games);
+      updateDropdownPercentages();
     }
   } catch (err) {
     console.error('Failed to sync progress with database, reverting:', err);
@@ -1688,6 +2361,7 @@ async function toggleItemCompletion(requirementId, forcedStatus = null) {
     updateCardDOM(requirementId, pokemonId, currentStatus === 1, currentCaughtGames);
     calculateAndRenderProgress();
     renderSectionPills();
+    updateDropdownPercentages();
   }
 }
 // Perform global search
@@ -1831,6 +2505,75 @@ function renderSearchResults() {
 
       const rowsHtml = processedReqs.map(req => {
         const actionIconHtml = getActionIconHtml(req.action_type, req.location_details, req.notes);
+
+        if ((req.action_type === 'CATCH' || req.action_type === 'GIFT' || req.action_type === 'CATCH_EVOLVE') && req.notes) {
+          const encounters = parseEncounterNotes(req.location_details, req.notes, req.game_id);
+          const groups = groupEncounters(encounters);
+          
+          const groupsHtml = groups.map((group, groupIdx) => {
+            const isTabMatch = req.game_id === state.selectedGameId && state.selectedSubTab !== 'All' && group.location.toLowerCase().includes(state.selectedSubTab.toLowerCase());
+            const isHiddenClass = (groupIdx >= 5 && !isTabMatch) ? 'hidden-encounter-group hidden' : '';
+            const highlightClass = '';
+            
+            const methodsHtml = group.methods.map(m => {
+              const levelHtml = m.level ? `<span class="enc-level">${m.level}</span>` : '';
+              const rateHtml = m.rate ? `<span class="enc-rate">${m.rate}</span>` : '';
+              return `
+                <div class="method-badge">
+                  ${m.method ? `<span class="enc-method">${m.method}</span>` : ''}
+                  ${levelHtml}
+                  ${rateHtml}
+                </div>
+              `;
+            }).join('');
+            
+            return `
+              <div class="encounter-location-group ${isHiddenClass} ${highlightClass}">
+                <div class="location-row">
+                  ${actionIconHtml}
+                  <span class="location-text">${linkifyLocation(group.location, req.game_id)}</span>
+                </div>
+                <div class="methods-inline">
+                  ${methodsHtml}
+                </div>
+              </div>
+            `;
+          }).join('');
+
+          const hiddenCount = groups.filter((g, idx) => {
+            const isTabMatch = req.game_id === state.selectedGameId && state.selectedSubTab !== 'All' && g.location.toLowerCase().includes(state.selectedSubTab.toLowerCase());
+            return idx >= 5 && !isTabMatch;
+          }).length;
+          
+          let expandBtnHtml = '';
+          if (hiddenCount > 0) {
+            expandBtnHtml = `
+              <button class="expand-encounters-btn collapsed" onclick="event.stopPropagation();">
+                Show ${hiddenCount} more locations...
+              </button>
+            `;
+          }
+
+          return `
+            <div class="search-encounter-item ${req.completed ? 'checked' : ''}" 
+                 data-requirement-id="${req.requirement_id}" 
+                 data-requirement-ids="${req.requirement_ids.join(',')}">
+              <div class="checkbox-container">
+                <div class="custom-checkbox"></div>
+              </div>
+              <div class="encounter-info">
+                <div class="encounter-details" style="margin-bottom: 6px;">
+                  <span class="game-tag tag-${req.game_id}">${req.game_name}</span>
+                </div>
+                <div class="encounter-groups-container">
+                  ${groupsHtml}
+                </div>
+                ${expandBtnHtml}
+              </div>
+            </div>
+          `;
+        }
+
         const notesHtml = req.notes ? `<div class="encounter-notes">${req.notes}</div>` : '';
         return `
           <div class="search-encounter-item ${req.completed ? 'checked' : ''}" 
@@ -1873,9 +2616,13 @@ function renderSearchResults() {
     card.innerHTML = `
       <div class="card-content">
         <div class="pokemon-header">
-          <span class="dex-number">#${paddedDex}</span>
-          <span class="pokemon-name">${item.pokemon_name}</span>
-          <div class="pokemon-types">${typesHtml}</div>
+          <div class="pokemon-title-row">
+            <span class="dex-number">#${paddedDex}</span>
+            <span class="pokemon-name">${item.pokemon_name}</span>
+          </div>
+          <div class="pokemon-header-badges">
+            <div class="pokemon-types">${typesHtml}</div>
+          </div>
         </div>
         <div class="card-footer-row" style="margin-top: 8px; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 8px;">
           <div class="game-ownership-icons">
@@ -1889,6 +2636,9 @@ function renderSearchResults() {
     // Click listener for checking/unchecking individual encounters
     card.querySelectorAll('.search-encounter-item').forEach(encItem => {
       encItem.addEventListener('click', async (e) => {
+        if (e.target.closest('.expand-encounters-btn')) {
+          return;
+        }
         e.stopPropagation();
         const reqIds = encItem.dataset.requirementIds.split(',').map(Number);
         const mainReqId = parseInt(encItem.dataset.requirementId);
@@ -1903,6 +2653,27 @@ function renderSearchResults() {
         const newStatus = currentStatus === 1 ? 0 : 1;
         
         await Promise.all(reqIds.map(reqId => toggleItemCompletion(reqId, newStatus)));
+      });
+    });
+
+    card.querySelectorAll('.expand-encounters-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const infoContainer = btn.closest('.encounter-info');
+        const hiddenGroups = infoContainer.querySelectorAll('.hidden-encounter-group');
+        const isCollapsed = btn.classList.contains('collapsed');
+        
+        if (isCollapsed) {
+          hiddenGroups.forEach(g => g.classList.remove('hidden'));
+          btn.textContent = 'Show less';
+          btn.classList.remove('collapsed');
+          btn.classList.add('expanded');
+        } else {
+          hiddenGroups.forEach(g => g.classList.add('hidden'));
+          btn.textContent = `Show ${hiddenGroups.length} more locations...`;
+          btn.classList.remove('expanded');
+          btn.classList.add('collapsed');
+        }
       });
     });
 
@@ -2094,6 +2865,7 @@ document.addEventListener('DOMContentLoaded', () => {
           renderChecklistCards();
           calculateAndRenderProgress();
           renderSectionPills();
+          updateDropdownPercentages();
           
           const activePill = sectionNav.querySelector(`.nav-pill[data-id="${state.selectedSectionId}"]`);
           if (activePill) activePill.classList.add('active');
@@ -2155,6 +2927,7 @@ async function releasePokemon(pokemonId, pokemonName) {
       renderChecklistCards();
       calculateAndRenderProgress();
       renderSectionPills();
+      updateDropdownPercentages();
       
       const activePill = sectionNav.querySelector(`.nav-pill[data-id="${state.selectedSectionId}"]`);
       if (activePill) activePill.classList.add('active');

@@ -1,0 +1,474 @@
+{
+  "10": {
+    "loc": "Route 30 & Route 31... (Morning/Day), Route 26 (Headbutt), Route 27 (Headbutt), Azalea Town (Headbutt), Route 34 (Headbutt), Route 35 (Headbutt), Route 36 (Headbutt), Route 37 (Headbutt), Route 38 (Headbutt), Route 39 (Headbutt), Ilex Forest (Headbutt), Lake Of Rage (Headbutt)",
+    "sec": 1
+  },
+  "11": {
+    "loc": "Route 30 & Route 31... (Morning/Day), Route 26 (Headbutt), Route 27 (Headbutt), Azalea Town (Headbutt), Route 34 (Headbutt), Route 35 (Headbutt), Route 36 (Headbutt), Route 37 (Headbutt), Route 38 (Headbutt), Route 39 (Headbutt), Route 47 (Headbutt), Ilex Forest (Headbutt), Lake Of Rage (Headbutt)",
+    "sec": 1
+  },
+  "12": {
+    "loc": "Route 2 (Morning), Route 26 (Headbutt), Route 27 (Headbutt), Azalea Town (Headbutt), Route 34 (Headbutt), Route 35 (Headbutt), Route 36 (Headbutt), Route 37 (Headbutt), Route 38 (Headbutt), Route 39 (Headbutt), Route 47 (Headbutt), Ilex Forest (Headbutt), Lake Of Rage (Headbutt)",
+    "sec": 2
+  },
+  "16": {
+    "loc": "Route 29 & Route 30... (Morning/Day)",
+    "sec": 1
+  },
+  "17": {
+    "loc": "Route 37 & Route 43... (Morning/Day)",
+    "sec": 4
+  },
+  "19": {
+    "loc": "Sprout Tower & Route 29..., Route 38 (Swarm)",
+    "sec": 1
+  },
+  "20": {
+    "loc": "Burned Tower & Mt. Mortar..., Route 38 (Swarm)",
+    "sec": 4
+  },
+  "21": {
+    "loc": "Route 46 & Route 33...",
+    "sec": 1
+  },
+  "22": {
+    "loc": "Route 9 & Route 10 North... (Morning/Day)",
+    "sec": 9
+  },
+  "25": {
+    "loc": "Route 2",
+    "sec": 9
+  },
+  "27": {
+    "loc": "Union Cave & Mount Moon",
+    "sec": 2
+  },
+  "28": {
+    "loc": "Route 26 & Route 27 & Mount Moon",
+    "sec": 8
+  },
+  "29": {
+    "loc": "Route 35 & Route 36",
+    "sec": 3
+  },
+  "30": {
+    "loc": "Route 13 & Route 14 & Route 15",
+    "sec": 9
+  },
+  "32": {
+    "loc": "Route 35 & Route 36",
+    "sec": 3
+  },
+  "33": {
+    "loc": "Route 13 & Route 14 & Route 15",
+    "sec": 9
+  },
+  "35": {
+    "loc": "Mount Moon",
+    "sec": 9
+  },
+  "39": {
+    "loc": "Route 46 & Route 3 & Route 4",
+    "sec": 1
+  },
+  "41": {
+    "loc": "Dark Cave & Union Cave...",
+    "sec": 1
+  },
+  "42": {
+    "loc": "Slowpoke Well & Mt. Mortar...",
+    "sec": 2
+  },
+  "43": {
+    "loc": "Ilex Forest & Route 5... (Night)",
+    "sec": 2
+  },
+  "44": {
+    "loc": "Route 5 (Night)",
+    "sec": 9
+  },
+  "46": {
+    "loc": "Ilex Forest & Mount Moon",
+    "sec": 2
+  },
+  "48": {
+    "loc": "Route 43 & Route 24 & Route 25",
+    "sec": 4
+  },
+  "49": {
+    "loc": "Route 24 & Route 25 (Night)",
+    "sec": 9
+  },
+  "50": {
+    "loc": "Digletts Cave",
+    "sec": 9
+  },
+  "51": {
+    "loc": "Digletts Cave",
+    "sec": 9
+  },
+  "54": {
+    "loc": "Ilex Forest & Route 35 & Route 6 (Surf)",
+    "sec": 2
+  },
+  "55": {
+    "loc": "Ilex Forest & Route 35...",
+    "sec": 2
+  },
+  "56": {
+    "loc": "Route 42 & Route 9",
+    "sec": 4
+  },
+  "57": {
+    "loc": "Route 9",
+    "sec": 9
+  },
+  "58": {
+    "loc": "Route 36 & Route 37...",
+    "sec": 3
+  },
+  "60": {
+    "loc": "Route 30 & Route 31... (Surf)",
+    "sec": 1
+  },
+  "61": {
+    "loc": "Route 30 & Route 31... (Surf)",
+    "sec": 1
+  },
+  "63": {
+    "loc": "Route 34 & Route 35...",
+    "sec": 3
+  },
+  "64": {
+    "loc": "Route 8",
+    "sec": 9
+  },
+  "66": {
+    "loc": "Mt. Mortar & Rock Tunnel",
+    "sec": 4
+  },
+  "67": {
+    "loc": "Mt. Mortar & Rock Tunnel",
+    "sec": 4
+  },
+  "69": {
+    "loc": "Route 31 & Route 32...",
+    "sec": 1
+  },
+  "70": {
+    "loc": "Route 44 & Route 24 & Route 25",
+    "sec": 7
+  },
+  "72": {
+    "loc": "New Bark Town & Cherrygrove City... (Surf)",
+    "sec": 1
+  },
+  "73": {
+    "loc": "New Bark Town & Cherrygrove City... (Surf)",
+    "sec": 1
+  },
+  "74": {
+    "loc": "Dark Cave & Route 46...",
+    "sec": 1
+  },
+  "75": {
+    "loc": "Mt. Mortar & Dark Cave...",
+    "sec": 4
+  },
+  "77": {
+    "loc": "Route 26 & Route 27...",
+    "sec": 8
+  },
+  "78": {
+    "loc": "Mt. Silver & Route 28",
+    "sec": 10
+  },
+  "79": {
+    "loc": "Slowpoke Well & Tohjo Falls",
+    "sec": 2
+  },
+  "80": {
+    "loc": "Slowpoke Well (Surf)",
+    "sec": 2
+  },
+  "81": {
+    "loc": "Route 38 & Route 39...",
+    "sec": 4
+  },
+  "83": {
+    "loc": "Route 38 & Route 39 (Morning/Day)",
+    "sec": 4
+  },
+  "84": {
+    "loc": "Route 26 & Route 27... (Morning/Day)",
+    "sec": 8
+  },
+  "85": {
+    "loc": "Route 26 & Mt. Silver & Route 28 (Morning/Day)",
+    "sec": 8
+  },
+  "86": {
+    "loc": "Whirl Islands",
+    "sec": 6
+  },
+  "88": {
+    "loc": "Route 16 & Route 17...",
+    "sec": 9
+  },
+  "89": {
+    "loc": "Route 16 & Route 17...",
+    "sec": 9
+  },
+  "92": {
+    "loc": "Sprout Tower & Tin Tower (Night)",
+    "sec": 1
+  },
+  "93": {
+    "loc": "Route 8 (Night)",
+    "sec": 9
+  },
+  "95": {
+    "loc": "Union Cave & Victory Road...",
+    "sec": 2
+  },
+  "96": {
+    "loc": "Route 34 & Route 35 & Route 11",
+    "sec": 3
+  },
+  "97": {
+    "loc": "Route 11",
+    "sec": 9
+  },
+  "98": {
+    "loc": "Whirl Islands",
+    "sec": 6
+  },
+  "100": {
+    "loc": "Route 10 North",
+    "sec": 9
+  },
+  "104": {
+    "loc": "Rock Tunnel",
+    "sec": 9
+  },
+  "105": {
+    "loc": "Rock Tunnel",
+    "sec": 9
+  },
+  "108": {
+    "loc": "Route 44",
+    "sec": 7
+  },
+  "109": {
+    "loc": "Burned Tower",
+    "sec": 4
+  },
+  "111": {
+    "loc": "Victory Road",
+    "sec": 8
+  },
+  "113": {
+    "loc": "Route 13 & Route 14 & Route 15",
+    "sec": 9
+  },
+  "114": {
+    "loc": "Route 44 & Route 21...",
+    "sec": 7
+  },
+  "115": {
+    "loc": "Rock Tunnel",
+    "sec": 9
+  },
+  "116": {
+    "loc": "Whirl Islands (Surf)",
+    "sec": 6
+  },
+  "117": {
+    "loc": "Whirl Islands (Surf)",
+    "sec": 6
+  },
+  "118": {
+    "loc": "Mt. Mortar & Route 42... (Surf)",
+    "sec": 4
+  },
+  "119": {
+    "loc": "Mt. Mortar & Route 42... (Surf)",
+    "sec": 4
+  },
+  "122": {
+    "loc": "Route 21",
+    "sec": 9
+  },
+  "124": {
+    "loc": "Ice Path",
+    "sec": 7
+  },
+  "125": {
+    "loc": "Route 10 North",
+    "sec": 9
+  },
+  "126": {
+    "loc": "Burned Tower",
+    "sec": 4
+  },
+  "128": {
+    "loc": "Route 38 & Route 39",
+    "sec": 4
+  },
+  "129": {
+    "loc": "Dark Cave & Route 43... (Surf)",
+    "sec": 1
+  },
+  "130": {
+    "loc": "Lake Of Rage (Surf)",
+    "sec": 4
+  },
+  "132": {
+    "loc": "Route 34 & Route 35",
+    "sec": 3
+  },
+  "147": {
+    "loc": "Dragon's Den (Surf)",
+    "sec": 7
+  },
+  "161": {
+    "loc": "Route 29 & Route 1 (Morning/Day)",
+    "sec": 1
+  },
+  "162": {
+    "loc": "Route 1 (Morning/Day)",
+    "sec": 9
+  },
+  "163": {
+    "loc": "Route 29 & Route 30... (Night)",
+    "sec": 1
+  },
+  "164": {
+    "loc": "Route 43 & Route 2... (Night)",
+    "sec": 4
+  },
+  "167": {
+    "loc": "Route 30 & Route 31... (Night), Route 01 (Headbutt), Route 02  Northern Section (Headbutt), Route 02  Southern Section (Headbutt), Route 12 (Headbutt), Route 13 (Headbutt), Route 14 (Headbutt), Route 15 (Headbutt), Route 18 (Headbutt), Route 21 (Headbutt), Route 22 (Headbutt), Route 26 (Headbutt), Route 27 (Headbutt), Pallet Town (Headbutt), Viridian City (Headbutt), Fuchsia City (Headbutt), Viridian Forest (Headbutt), New Bark Town (Headbutt), Cherrygrove City (Headbutt), Ecruteak City (Headbutt), Safari Zone Gate (Headbutt), Route 29 (Headbutt), Route 30 (Headbutt), Route 31 (Headbutt), Route 34 (Headbutt), Route 35 (Headbutt), Route 36 (Headbutt), Route 37 (Headbutt), Route 38 (Headbutt), Route 39 (Headbutt), Route 47 (Headbutt), Route 48 (Headbutt), National Park (Headbutt)",
+    "sec": 1
+  },
+  "168": {
+    "loc": "Route 2 (Night), Viridian Forest (Headbutt)",
+    "sec": 9
+  },
+  "177": {
+    "loc": "Ruins of Alph",
+    "sec": 2
+  },
+  "179": {
+    "loc": "Route 32 & Route 42 & Route 43",
+    "sec": 2
+  },
+  "180": {
+    "loc": "Route 42 & Route 43",
+    "sec": 4
+  },
+  "183": {
+    "loc": "Mt. Mortar",
+    "sec": 4
+  },
+  "187": {
+    "loc": "Route 32 & Route 33... (Morning/Day)",
+    "sec": 2
+  },
+  "188": {
+    "loc": "Route 14 (Morning/Day)",
+    "sec": 9
+  },
+  "191": {
+    "loc": "National Park & Route 24",
+    "sec": 3
+  },
+  "193": {
+    "loc": "Route 35",
+    "sec": 3
+  },
+  "194": {
+    "loc": "Route 32 & Ruins of Alph & Union Cave",
+    "sec": 2
+  },
+  "195": {
+    "loc": "Ruins of Alph & Union Cave...",
+    "sec": 2
+  },
+  "198": {
+    "loc": "Route 7 & Route 16 (Night)",
+    "sec": 9
+  },
+  "200": {
+    "loc": "Mt. Silver (Night)",
+    "sec": 10
+  },
+  "201": {
+    "loc": "Ruins of Alph",
+    "sec": 5
+  },
+  "202": {
+    "loc": "Dark Cave",
+    "sec": 7
+  },
+  "203": {
+    "loc": "Route 43",
+    "sec": 4
+  },
+  "206": {
+    "loc": "Dark Cave",
+    "sec": 1
+  },
+  "207": {
+    "loc": "Route 45",
+    "sec": 7
+  },
+  "209": {
+    "loc": "Route 38",
+    "sec": 4
+  },
+  "215": {
+    "loc": "Mt. Silver & Route 28 (Night)",
+    "sec": 10
+  },
+  "216": {
+    "loc": "Route 45",
+    "sec": 7
+  },
+  "217": {
+    "loc": "Victory Road & Mt. Silver & Route 28",
+    "sec": 8
+  },
+  "218": {
+    "loc": "Route 16 & Route 17 & Route 18",
+    "sec": 9
+  },
+  "220": {
+    "loc": "Ice Path",
+    "sec": 7
+  },
+  "226": {
+    "loc": "Route 41 (Surf)",
+    "sec": 5
+  },
+  "228": {
+    "loc": "Route 7 (Night)",
+    "sec": 9
+  },
+  "234": {
+    "loc": "Route 36 & Route 37",
+    "sec": 3
+  },
+  "235": {
+    "loc": "Ruins of Alph",
+    "sec": 2
+  },
+  "241": {
+    "loc": "Route 38 & Route 39",
+    "sec": 4
+  },
+  "246": {
+    "loc": "Mt. Silver",
+    "sec": 10
+  }
+}

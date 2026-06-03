@@ -1,0 +1,314 @@
+{
+  "10": {
+    "loc": "Viridian Forest, Route 25",
+    "sec": 1
+  },
+  "11": {
+    "loc": "Viridian Forest, Route 25",
+    "sec": 1
+  },
+  "13": {
+    "loc": "Route 2, Viridian Forest...",
+    "sec": 1
+  },
+  "14": {
+    "loc": "Viridian Forest, Route 24, Route 25",
+    "sec": 1
+  },
+  "16": {
+    "loc": "Route 1, Route 2...",
+    "sec": 1
+  },
+  "17": {
+    "loc": "Route 14, Route 15, Route 21",
+    "sec": 3
+  },
+  "19": {
+    "loc": "Route 1, Route 2...",
+    "sec": 1
+  },
+  "20": {
+    "loc": "Route 16, Route 17...",
+    "sec": 3
+  },
+  "21": {
+    "loc": "Route 22, Route 3...",
+    "sec": 1
+  },
+  "22": {
+    "loc": "Route 17, Route 18, Route 23",
+    "sec": 3
+  },
+  "23": {
+    "loc": "Route 4, Route 10...",
+    "sec": 2
+  },
+  "24": {
+    "loc": "Route 23, Cerulean Cave",
+    "sec": 6
+  },
+  "25": {
+    "loc": "Viridian Forest, Power Plant",
+    "sec": 1
+  },
+  "26": {
+    "loc": "Cerulean Cave",
+    "sec": 7
+  },
+  "29": {
+    "loc": "Route 22, Safari Zone",
+    "sec": 1
+  },
+  "30": {
+    "loc": "Safari Zone",
+    "sec": 3
+  },
+  "32": {
+    "loc": "Route 22, Safari Zone",
+    "sec": 1
+  },
+  "33": {
+    "loc": "Safari Zone",
+    "sec": 3
+  },
+  "35": {
+    "loc": "Mt. Moon",
+    "sec": 2
+  },
+  "39": {
+    "loc": "Route 3",
+    "sec": 2
+  },
+  "40": {
+    "loc": "Cerulean Cave",
+    "sec": 7
+  },
+  "41": {
+    "loc": "Mt. Moon, Rock Tunnel...",
+    "sec": 2
+  },
+  "42": {
+    "loc": "Cerulean Cave, Seafoam Islands, Victory Road",
+    "sec": 7
+  },
+  "43": {
+    "loc": "Route 12, Route 13...",
+    "sec": 3
+  },
+  "44": {
+    "loc": "Route 12, Route 13...",
+    "sec": 3
+  },
+  "46": {
+    "loc": "Mt. Moon, Safari Zone",
+    "sec": 2
+  },
+  "47": {
+    "loc": "Safari Zone, Cerulean Cave",
+    "sec": 3
+  },
+  "48": {
+    "loc": "Route 12, Route 13...",
+    "sec": 3
+  },
+  "49": {
+    "loc": "Safari Zone, Cerulean Cave, Victory Road",
+    "sec": 3
+  },
+  "50": {
+    "loc": "Diglett's Cave",
+    "sec": 3
+  },
+  "51": {
+    "loc": "Diglett's Cave",
+    "sec": 3
+  },
+  "54": {
+    "loc": "Seafoam Islands",
+    "sec": 7
+  },
+  "55": {
+    "loc": "Seafoam Islands",
+    "sec": 7
+  },
+  "56": {
+    "loc": "Route 5, Route 6...",
+    "sec": 3
+  },
+  "58": {
+    "loc": "Route 7, Route 8, Pokémon Mansion",
+    "sec": 3
+  },
+  "63": {
+    "loc": "Route 24, Route 25",
+    "sec": 3
+  },
+  "64": {
+    "loc": "Cerulean Cave",
+    "sec": 7
+  },
+  "66": {
+    "loc": "Rock Tunnel, Victory Road",
+    "sec": 7
+  },
+  "67": {
+    "loc": "Victory Road",
+    "sec": 7
+  },
+  "72": {
+    "loc": "Route 21, Sea Routes (Surf)",
+    "sec": 4
+  },
+  "74": {
+    "loc": "Mt. Moon, Rock Tunnel, Victory Road",
+    "sec": 2
+  },
+  "75": {
+    "loc": "Victory Road",
+    "sec": 7
+  },
+  "77": {
+    "loc": "Pokémon Mansion",
+    "sec": 7
+  },
+  "79": {
+    "loc": "Seafoam Islands",
+    "sec": 7
+  },
+  "80": {
+    "loc": "Seafoam Islands",
+    "sec": 5
+  },
+  "81": {
+    "loc": "Power Plant",
+    "sec": 4
+  },
+  "82": {
+    "loc": "Power Plant, Cerulean Cave",
+    "sec": 4
+  },
+  "84": {
+    "loc": "Route 16, Route 17...",
+    "sec": 3
+  },
+  "85": {
+    "loc": "Cerulean Cave",
+    "sec": 7
+  },
+  "86": {
+    "loc": "Seafoam Islands",
+    "sec": 7
+  },
+  "87": {
+    "loc": "Seafoam Islands",
+    "sec": 5
+  },
+  "88": {
+    "loc": "Pokémon Mansion",
+    "sec": 7
+  },
+  "89": {
+    "loc": "Pokémon Mansion",
+    "sec": 7
+  },
+  "90": {
+    "loc": "Seafoam Islands",
+    "sec": 7
+  },
+  "92": {
+    "loc": "Pokémon Tower",
+    "sec": 7
+  },
+  "93": {
+    "loc": "Pokémon Tower",
+    "sec": 7
+  },
+  "95": {
+    "loc": "Rock Tunnel, Victory Road",
+    "sec": 7
+  },
+  "96": {
+    "loc": "Route 11",
+    "sec": 3
+  },
+  "97": {
+    "loc": "Cerulean Cave",
+    "sec": 7
+  },
+  "100": {
+    "loc": "Route 10, Power Plant",
+    "sec": 3
+  },
+  "101": {
+    "loc": "Cerulean Cave",
+    "sec": 7
+  },
+  "102": {
+    "loc": "Safari Zone",
+    "sec": 3
+  },
+  "104": {
+    "loc": "Pokémon Tower",
+    "sec": 7
+  },
+  "105": {
+    "loc": "Cerulean Cave, Victory Road",
+    "sec": 7
+  },
+  "109": {
+    "loc": "Pokémon Mansion",
+    "sec": 7
+  },
+  "110": {
+    "loc": "Pokémon Mansion",
+    "sec": 7
+  },
+  "111": {
+    "loc": "Safari Zone",
+    "sec": 3
+  },
+  "112": {
+    "loc": "Cerulean Cave",
+    "sec": 7
+  },
+  "113": {
+    "loc": "Safari Zone, Cerulean Cave",
+    "sec": 3
+  },
+  "114": {
+    "loc": "Route 21",
+    "sec": 4
+  },
+  "115": {
+    "loc": "Safari Zone",
+    "sec": 3
+  },
+  "116": {
+    "loc": "Seafoam Islands",
+    "sec": 7
+  },
+  "117": {
+    "loc": "Seafoam Islands",
+    "sec": 5
+  },
+  "120": {
+    "loc": "Seafoam Islands",
+    "sec": 5
+  },
+  "123": {
+    "loc": "Safari Zone",
+    "sec": 3
+  },
+  "125": {
+    "loc": "Power Plant",
+    "sec": 4
+  },
+  "128": {
+    "loc": "Safari Zone",
+    "sec": 3
+  },
+  "132": {
+    "loc": "Route 13, Route 14...",
+    "sec": 3
+  }
+}

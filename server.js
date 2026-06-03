@@ -78,7 +78,29 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/api/games', async (req, res) => {
   try {
     const games = await query('SELECT * FROM games ORDER BY generation, name');
-    res.json(games);
+    const gamesWithProgress = [];
+    
+    for (const game of games) {
+      const gameGen = ['red', 'blue', 'yellow'].includes(game.id) ? 1 : (['gold', 'silver', 'crystal'].includes(game.id) ? 2 : 3);
+      const maxDex = gameGen === 1 ? 151 : (gameGen === 2 ? 251 : 386);
+
+      const caughtCountRow = await query(`
+        SELECT COUNT(DISTINCT pokemon_id) as completed_count
+        FROM caught_pokemon
+        WHERE game_id = ? AND pokemon_id <= ?
+      `, [game.id, maxDex]);
+
+      const completed = caughtCountRow[0].completed_count || 0;
+      
+      gamesWithProgress.push({
+        ...game,
+        total: maxDex,
+        completed: completed,
+        percentage: maxDex ? Math.round((completed / maxDex) * 100) : 0
+      });
+    }
+    
+    res.json(gamesWithProgress);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to retrieve games' });

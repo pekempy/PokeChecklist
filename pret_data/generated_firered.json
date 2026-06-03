@@ -1,0 +1,458 @@
+{
+  "10": {
+    "loc": "Viridian Forest, Six Island Pattern Bush...",
+    "sec": 1
+  },
+  "11": {
+    "loc": "Viridian Forest, Six Island Pattern Bush...",
+    "sec": 1
+  },
+  "13": {
+    "loc": "Viridian Forest, Six Island Pattern Bush...",
+    "sec": 1
+  },
+  "14": {
+    "loc": "Viridian Forest, Six Island Pattern Bush...",
+    "sec": 1
+  },
+  "16": {
+    "loc": "Three Island Berry Forest, Three Island Bond Bridge...",
+    "sec": 7
+  },
+  "17": {
+    "loc": "Three Island Berry Forest, Three Island Bond Bridge...",
+    "sec": 7
+  },
+  "19": {
+    "loc": "Pokemon Mansion, Route1...",
+    "sec": 4
+  },
+  "20": {
+    "loc": "Pokemon Mansion, Route16...",
+    "sec": 4
+  },
+  "21": {
+    "loc": "Mt. Ember, One Island Kindle Road...",
+    "sec": 5
+  },
+  "22": {
+    "loc": "Mt. Ember, One Island Kindle Road...",
+    "sec": 5
+  },
+  "23": {
+    "loc": "Route4, Route8...",
+    "sec": 7
+  },
+  "24": {
+    "loc": "Victory Road, Route23",
+    "sec": 6
+  },
+  "25": {
+    "loc": "Viridian Forest, Power Plant",
+    "sec": 1
+  },
+  "29": {
+    "loc": "Safari Zone, Route3",
+    "sec": 3
+  },
+  "30": {
+    "loc": "Safari Zone, Route 11 (Trade)",
+    "sec": 3
+  },
+  "32": {
+    "loc": "Safari Zone, Route3",
+    "sec": 3
+  },
+  "33": {
+    "loc": "Safari Zone",
+    "sec": 3
+  },
+  "35": {
+    "loc": "Mt. Moon",
+    "sec": 2
+  },
+  "39": {
+    "loc": "Route3",
+    "sec": 7
+  },
+  "41": {
+    "loc": "Mt. Moon, Rock Tunnel...",
+    "sec": 2
+  },
+  "42": {
+    "loc": "Seafoam Islands, Victory Road...",
+    "sec": 4
+  },
+  "43": {
+    "loc": "Three Island Berry Forest, Two Island Cape Brink...",
+    "sec": 7
+  },
+  "44": {
+    "loc": "Three Island Berry Forest, Two Island Cape Brink...",
+    "sec": 7
+  },
+  "46": {
+    "loc": "Mt. Moon, Safari Zone",
+    "sec": 2
+  },
+  "47": {
+    "loc": "Safari Zone, Cerulean Cave",
+    "sec": 3
+  },
+  "48": {
+    "loc": "Safari Zone, Three Island Berry Forest...",
+    "sec": 3
+  },
+  "49": {
+    "loc": "Safari Zone, Three Island Berry Forest",
+    "sec": 3
+  },
+  "50": {
+    "loc": "Diglett's Cave",
+    "sec": 2
+  },
+  "51": {
+    "loc": "Diglett's Cave",
+    "sec": 2
+  },
+  "52": {
+    "loc": "One Island Kindle Road, One Island Treasure Beach...",
+    "sec": 7
+  },
+  "53": {
+    "loc": "One Island Kindle Road, One Island Treasure Beach...",
+    "sec": 7
+  },
+  "54": {
+    "loc": "Safari Zone, Seafoam Islands..., Route 04 (Super Rod), Route 06 (Super Rod), Route 10 (Super Rod), Route 11 (Super Rod), Route 12 (Super Rod), Route 13 (Super Rod), Route 19 (Super Rod), Route 20 (Super Rod), Route 21 (Super Rod), Route 22 (Super Rod), Route 23 (Super Rod), Route 24 (Super Rod), Route 25 (Super Rod), Pallet Town (Super Rod), Viridian City (Super Rod), Cerulean City (Super Rod), Vermilion City (Good Rod), Vermilion City Port (Super Rod), Fuchsia City (Super Rod), Cinnabar Island (Super Rod), Cerulean Cave 1f (Super Rod), Cerulean Cave B2f (Super Rod), Safari Zone  Center Area (Super Rod), Safari Zone  Area 1 (Super Rod), Safari Zone  Area 2 (Super Rod), Safari Zone  Area 3 (Super Rod), Seafoam Islands B3f (Super Rod), Seafoam Islands B4f (Super Rod), One Island (Super Rod), Four Island (Super Rod), Five Island (Super Rod), Treasure Beach (Super Rod), Kindle Road (Super Rod), Cape Brink (Super Rod), Bond Bridge (Super Rod), Resort Gorgeous (Super Rod), Water Labyrinth (Super Rod), Five Isle Meadow (Super Rod), Memorial Pillar (Super Rod), Outcast Island (Super Rod), Green Path (Super Rod), Water Path (Super Rod), Ruin Valley (Super Rod), Trainer Tower (Super Rod), Tanoby Ruins (Super Rod), Berry Forest (Super Rod), Icefall Cave Entrance (Super Rod), Icefall Cave Back Cave (Super Rod)",
+    "sec": 3
+  },
+  "55": {
+    "loc": "Seafoam Islands, Cerulean Cave...",
+    "sec": 4
+  },
+  "56": {
+    "loc": "Rock Tunnel, Route3...",
+    "sec": 3
+  },
+  "57": {
+    "loc": "Victory Road, Cerulean Cave, Route23",
+    "sec": 6
+  },
+  "58": {
+    "loc": "Pokemon Mansion, Route7, Route8",
+    "sec": 4
+  },
+  "60": {
+    "loc": "Safari Zone, Cerulean Cave... (Fish)",
+    "sec": 3
+  },
+  "61": {
+    "loc": "Cerulean Cave, Four Island Icefall Cave... (Fish)",
+    "sec": 7
+  },
+  "63": {
+    "loc": "Route24, Route25",
+    "sec": 7
+  },
+  "64": {
+    "loc": "Cerulean Cave",
+    "sec": 7
+  },
+  "66": {
+    "loc": "Rock Tunnel, Mt. Ember, Victory Road",
+    "sec": 3
+  },
+  "67": {
+    "loc": "Mt. Ember, Victory Road, Cerulean Cave",
+    "sec": 5
+  },
+  "72": {
+    "loc": "One Island, Ssanne Exterior... (Surf)",
+    "sec": 5
+  },
+  "73": {
+    "loc": "One Island, Four Island Icefall Cave... (Surf)",
+    "sec": 5
+  },
+  "74": {
+    "loc": "Mt. Moon, Rock Tunnel...",
+    "sec": 2
+  },
+  "75": {
+    "loc": "Rock Tunnel, Mt. Ember... (Rock Smash)",
+    "sec": 3
+  },
+  "77": {
+    "loc": "Mt. Ember, One Island Kindle Road",
+    "sec": 5
+  },
+  "78": {
+    "loc": "Mt. Ember, One Island Kindle Road",
+    "sec": 5
+  },
+  "81": {
+    "loc": "Power Plant",
+    "sec": 4
+  },
+  "82": {
+    "loc": "Power Plant, Cerulean Cave",
+    "sec": 4
+  },
+  "84": {
+    "loc": "Safari Zone, Route16...",
+    "sec": 3
+  },
+  "86": {
+    "loc": "Seafoam Islands, Four Island Icefall Cave",
+    "sec": 4
+  },
+  "87": {
+    "loc": "Seafoam Islands, Four Island Icefall Cave",
+    "sec": 4
+  },
+  "88": {
+    "loc": "Pokemon Mansion, Celadon City",
+    "sec": 4
+  },
+  "90": {
+    "loc": "One Island, Ssanne Exterior... (Fish), Pallet Town (Super Rod), Vermilion City (Super Rod), Vermilion City Port (Super Rod), Cinnabar Island (Super Rod), One Island (Super Rod), Five Island (Super Rod), Icefall Cave Back Cave (Super Rod)",
+    "sec": 5
+  },
+  "92": {
+    "loc": "Pokemon Tower, Five Island Lost Cave",
+    "sec": 3
+  },
+  "93": {
+    "loc": "Pokemon Tower, Five Island Lost Cave",
+    "sec": 3
+  },
+  "95": {
+    "loc": "Rock Tunnel, Victory Road, Seven Island Sevault Canyon",
+    "sec": 3
+  },
+  "96": {
+    "loc": "Three Island Berry Forest, Route11",
+    "sec": 7
+  },
+  "97": {
+    "loc": "Three Island Berry Forest",
+    "sec": 7
+  },
+  "98": {
+    "loc": "Seafoam Islands, Ssanne Exterior... (Fish), Route 04 (Good Rod), Route 10 (Good Rod), Route 11 (Good Rod), Route 12 (Good Rod), Route 13 (Good Rod), Route 19 (Good Rod), Route 20 (Good Rod), Route 21 (Good Rod), Vermilion City Port (Good Rod), Route 24 (Good Rod), Pallet Town (Good Rod), Cerulean City (Good Rod), Vermilion City (Good Rod), Cinnabar Island (Good Rod), Seafoam Islands B3f (Good Rod), Seafoam Islands B4f (Good Rod)",
+    "sec": 4
+  },
+  "100": {
+    "loc": "Power Plant, Route10",
+    "sec": 4
+  },
+  "101": {
+    "loc": "Cerulean Cave",
+    "sec": 7
+  },
+  "102": {
+    "loc": "Safari Zone, Three Island Berry Forest",
+    "sec": 3
+  },
+  "104": {
+    "loc": "Pokemon Tower, Seven Island Sevault Canyon",
+    "sec": 3
+  },
+  "105": {
+    "loc": "Victory Road, Seven Island Sevault Canyon",
+    "sec": 6
+  },
+  "108": {
+    "loc": "Route 18 (Trade)",
+    "sec": 7
+  },
+  "109": {
+    "loc": "Pokemon Mansion, Celadon City",
+    "sec": 4
+  },
+  "110": {
+    "loc": "Pokemon Mansion",
+    "sec": 4
+  },
+  "111": {
+    "loc": "Safari Zone",
+    "sec": 3
+  },
+  "113": {
+    "loc": "Safari Zone",
+    "sec": 3
+  },
+  "114": {
+    "loc": "One Island Treasure Beach, Route21 North, Route21 South",
+    "sec": 7
+  },
+  "115": {
+    "loc": "Safari Zone",
+    "sec": 3
+  },
+  "116": {
+    "loc": "Seafoam Islands, One Island... (Surf), Route 04 (Good Rod), Route 04 (Super Rod), Route 10 (Good Rod), Route 10 (Super Rod), Route 11 (Good Rod), Route 11 (Super Rod), Route 12 (Good Rod), Route 12 (Super Rod), Route 13 (Good Rod), Route 13 (Super Rod), Route 19 (Good Rod), Route 19 (Super Rod), Route 20 (Good Rod), Route 20 (Super Rod), Route 21 (Good Rod), Route 21 (Super Rod), Route 24 (Good Rod), Route 24 (Super Rod), Pallet Town (Good Rod), Pallet Town (Super Rod), Cerulean City (Good Rod), Cerulean City (Super Rod), Vermilion City (Good Rod), Vermilion City (Super Rod), Vermilion City Port (Good Rod), Vermilion City Port (Super Rod), Cinnabar Island (Good Rod), Cinnabar Island (Super Rod), Seafoam Islands B3f (Good Rod), Seafoam Islands B3f (Super Rod), Seafoam Islands B4f (Good Rod), Seafoam Islands B4f (Super Rod), One Island (Good Rod), One Island (Super Rod), Five Island (Good Rod), Five Island (Super Rod), Treasure Beach (Good Rod), Treasure Beach (Super Rod), Kindle Road (Good Rod), Kindle Road (Super Rod), Bond Bridge (Good Rod), Bond Bridge (Super Rod), Resort Gorgeous (Good Rod), Resort Gorgeous (Super Rod), Water Labyrinth (Good Rod), Water Labyrinth (Super Rod), Five Isle Meadow (Good Rod), Five Isle Meadow (Super Rod), Memorial Pillar (Good Rod), Memorial Pillar (Super Rod), Outcast Island (Good Rod), Outcast Island (Super Rod), Green Path (Good Rod), Green Path (Super Rod), Water Path (Good Rod), Water Path (Super Rod), Trainer Tower (Good Rod), Trainer Tower (Super Rod), Tanoby Ruins (Good Rod), Tanoby Ruins (Super Rod), Icefall Cave Back Cave (Good Rod), Icefall Cave Back Cave (Super Rod)",
+    "sec": 4
+  },
+  "117": {
+    "loc": "One Island, Four Island Icefall Cave... (Fish), Route 19 (Super Rod), Route 20 (Super Rod), Route 21 (Super Rod), Pallet Town (Super Rod), Cinnabar Island (Super Rod), One Island (Super Rod), Five Island (Super Rod), Treasure Beach (Super Rod), Kindle Road (Super Rod), Bond Bridge (Super Rod), Resort Gorgeous (Super Rod), Water Labyrinth (Super Rod), Five Isle Meadow (Super Rod), Memorial Pillar (Super Rod), Outcast Island (Super Rod), Green Path (Super Rod), Water Path (Super Rod), Trainer Tower (Super Rod), Tanoby Ruins (Super Rod), Icefall Cave Back Cave (Super Rod)",
+    "sec": 5
+  },
+  "118": {
+    "loc": "Safari Zone, Cerulean Cave... (Fish)",
+    "sec": 3
+  },
+  "119": {
+    "loc": "Safari Zone, Three Island Berry Forest, Fuchsia City (Fish)",
+    "sec": 3
+  },
+  "123": {
+    "loc": "Safari Zone",
+    "sec": 3
+  },
+  "125": {
+    "loc": "Power Plant",
+    "sec": 4
+  },
+  "128": {
+    "loc": "Safari Zone",
+    "sec": 3
+  },
+  "129": {
+    "loc": "Safari Zone, Seafoam Islands... (Fish)",
+    "sec": 3
+  },
+  "130": {
+    "loc": "Seafoam Islands, One Island... (Fish)",
+    "sec": 4
+  },
+  "131": {
+    "loc": "Four Island Icefall Cave (Surf)",
+    "sec": 7
+  },
+  "132": {
+    "loc": "Pokemon Mansion, Cerulean Cave...",
+    "sec": 4
+  },
+  "147": {
+    "loc": "Safari Zone (Fish)",
+    "sec": 3
+  },
+  "148": {
+    "loc": "Safari Zone (Fish)",
+    "sec": 3
+  },
+  "161": {
+    "loc": "Five Island Meadow, Six Island Water Path, Seven Island Sevault Canyon Entrance",
+    "sec": 7
+  },
+  "165": {
+    "loc": "Six Island Pattern Bush",
+    "sec": 7
+  },
+  "167": {
+    "loc": "Six Island Pattern Bush",
+    "sec": 7
+  },
+  "177": {
+    "loc": "Six Island Ruin Valley",
+    "sec": 7
+  },
+  "179": {
+    "loc": "Six Island Altering Cave",
+    "sec": 7
+  },
+  "187": {
+    "loc": "Five Island Resort Gorgeous, Five Island Water Labyrinth...",
+    "sec": 7
+  },
+  "190": {
+    "loc": "Six Island Altering Cave",
+    "sec": 7
+  },
+  "193": {
+    "loc": "Six Island Ruin Valley",
+    "sec": 7
+  },
+  "194": {
+    "loc": "Four Island Icefall Cave, Six Island Ruin Valley, Four Island",
+    "sec": 7
+  },
+  "198": {
+    "loc": "Five Island Lost Cave",
+    "sec": 7
+  },
+  "201": {
+    "loc": "Seven Island Tanoby Ruins Monean Chamber, Seven Island Tanoby Ruins Liptoo Chamber...",
+    "sec": 7
+  },
+  "202": {
+    "loc": "Cerulean Cave, Six Island Ruin Valley",
+    "sec": 7
+  },
+  "204": {
+    "loc": "Six Island Altering Cave",
+    "sec": 7
+  },
+  "206": {
+    "loc": "Three Island Port",
+    "sec": 7
+  },
+  "211": {
+    "loc": "Five Island Resort Gorgeous, Five Island Water Labyrinth... (Fish), Resort Gorgeous (Super Rod), Water Labyrinth (Super Rod), Five Isle Meadow (Super Rod), Memorial Pillar (Super Rod), Outcast Island (Super Rod), Green Path (Super Rod), Water Path (Super Rod), Trainer Tower (Super Rod), Tanoby Ruins (Super Rod)",
+    "sec": 7
+  },
+  "213": {
+    "loc": "Six Island Altering Cave",
+    "sec": 7
+  },
+  "214": {
+    "loc": "Six Island Pattern Bush",
+    "sec": 7
+  },
+  "216": {
+    "loc": "Six Island Altering Cave",
+    "sec": 7
+  },
+  "218": {
+    "loc": "Mt. Ember",
+    "sec": 5
+  },
+  "219": {
+    "loc": "Mt. Ember (Rock Smash)",
+    "sec": 5
+  },
+  "220": {
+    "loc": "Four Island Icefall Cave",
+    "sec": 7
+  },
+  "225": {
+    "loc": "Four Island Icefall Cave",
+    "sec": 7
+  },
+  "227": {
+    "loc": "Seven Island Sevault Canyon",
+    "sec": 7
+  },
+  "228": {
+    "loc": "Six Island Altering Cave",
+    "sec": 7
+  },
+  "231": {
+    "loc": "Seven Island Sevault Canyon Entrance, Seven Island Sevault Canyon",
+    "sec": 7
+  },
+  "234": {
+    "loc": "Six Island Altering Cave",
+    "sec": 7
+  },
+  "235": {
+    "loc": "Six Island Altering Cave",
+    "sec": 7
+  },
+  "246": {
+    "loc": "Seven Island Sevault Canyon",
+    "sec": 7
+  }
+}

@@ -34,65 +34,107 @@ detailedData.forEach(p => {
 });
 
 function matchLocation(dbLoc, apiLoc) {
-  const dbClean = dbLoc.toLowerCase().replace(/[^a-z0-9 ]/g, ' ');
+  const dbParts = dbLoc.split(',').map(p => p.trim().toLowerCase().replace(/\.\.\./g, '').trim());
   const apiClean = apiLoc.toLowerCase().replace(/[^a-z0-9 ]/g, ' ');
   
-  const dbWords = dbClean.split(/\s+/).filter(Boolean);
-  const apiWords = apiClean.split(/\s+/).filter(Boolean);
-  
-  // Strict Route matching
-  const dbRouteIdx = dbWords.indexOf('route');
-  const apiRouteIdx = apiWords.indexOf('route');
-  if (dbRouteIdx !== -1 && apiRouteIdx !== -1) {
-    const dbRouteNum = dbWords[dbRouteIdx + 1];
-    const apiRouteNum = apiWords[apiRouteIdx + 1];
-    if (dbRouteNum && apiRouteNum) {
-      return dbRouteNum === apiRouteNum;
+  return dbParts.some(part => {
+    if (!part) return false;
+    const partClean = part.replace(/[^a-z0-9 ]/g, ' ');
+    const partWords = partClean.split(/\s+/).filter(Boolean);
+    const apiWords = apiClean.split(/\s+/).filter(Boolean);
+    
+    // Strict Route matching
+    const partRouteIndices = [];
+    partWords.forEach((w, idx) => {
+      if (w === 'route') partRouteIndices.push(idx);
+    });
+    
+    const apiRouteIndices = [];
+    apiWords.forEach((w, idx) => {
+      if (w === 'route') apiRouteIndices.push(idx);
+    });
+    
+    if (partRouteIndices.length > 0 && apiRouteIndices.length > 0) {
+      return partRouteIndices.some(pIdx => {
+        const dbRouteNum = partWords[pIdx + 1];
+        return apiRouteIndices.some(aIdx => {
+          const apiRouteNum = apiWords[aIdx + 1];
+          return dbRouteNum && apiRouteNum && dbRouteNum === apiRouteNum;
+        });
+      });
     }
-  }
-  
-  // Specific place matchers
-  if (dbClean.includes('safari') && apiClean.includes('safari')) return true;
-  if (dbClean.includes('mansion') && apiClean.includes('mansion')) return true;
-  if (dbClean.includes('seafoam') && apiClean.includes('seafoam')) return true;
-  if (dbClean.includes('power plant') && apiClean.includes('power plant')) return true;
-  if (dbClean.includes('victory road') && apiClean.includes('victory road')) return true;
-  if (dbClean.includes('cerulean cave') && apiClean.includes('cerulean-cave')) return true;
-  if (dbClean.includes('cerulean cave') && apiClean.includes('unknown dungeon')) return true;
-  
-  // Fallback: check overlap of words
-  const ignore = [
-    'and', 'the', 'a', 'or', 'of', 'in', 'f', 'b1f', 'b2f', 'b3f', 'b4f',
-    'route', 'cave', 'mt', 'mountain', 'lake', 'city', 'town', 'forest', 'tunnel',
-    'ruins', 'island', 'islands', 'pass', 'path', 'entrance', 'house', 'hideout',
-    'tower', 'well', 'woods', 'seafoam', 'safari', 'mansion', 'dungeon',
-    'valley', 'canyon', 'bridge', 'beach', 'road', 'halls', 'victory', 'new', 'old',
-    'floor', 'area', 'room', 'cellar', 'underpass', 'exit', 'entrance'
-  ];
-  const dbSigs = dbWords.filter(w => !ignore.includes(w));
-  const apiSigs = apiWords.filter(w => !ignore.includes(w));
-  
-  return dbSigs.some(w => apiSigs.includes(w));
+    
+    // Specific place matchers
+    if (partClean.includes('safari') && apiClean.includes('safari')) return true;
+    if (partClean.includes('mansion') && apiClean.includes('mansion')) return true;
+    if (partClean.includes('seafoam') && apiClean.includes('seafoam')) return true;
+    if (partClean.includes('power plant') && apiClean.includes('power plant')) return true;
+    if (partClean.includes('victory road') && apiClean.includes('victory road')) return true;
+    if (partClean.includes('cerulean cave') && (apiClean.includes('cerulean-cave') || apiClean.includes('unknown dungeon'))) return true;
+    
+    // Fallback: check overlap of words
+    const ignore = [
+      'and', 'the', 'a', 'or', 'of', 'in', 'f', 'b1f', 'b2f', 'b3f', 'b4f',
+      'route', 'cave', 'mt', 'mountain', 'lake', 'city', 'town', 'forest', 'tunnel',
+      'ruins', 'island', 'islands', 'pass', 'path', 'entrance', 'house', 'hideout',
+      'tower', 'well', 'woods', 'seafoam', 'safari', 'mansion', 'dungeon',
+      'valley', 'canyon', 'bridge', 'beach', 'road', 'halls', 'victory', 'new', 'old',
+      'floor', 'area', 'room', 'cellar', 'underpass', 'exit', 'entrance'
+    ];
+    const dbSigs = partWords.filter(w => !ignore.includes(w));
+    const apiSigs = apiWords.filter(w => !ignore.includes(w));
+    
+    return dbSigs.some(w => apiSigs.includes(w));
+  });
 }
+
 
 function getEncounterDetails(gameId, pokemonId, dbLocation) {
   const pData = detailedDataMap[pokemonId];
   if (!pData) return null;
   const gameData = pData.obtainable_in[gameId];
   if (!gameData || !gameData.obtainable) return null;
-  
-  const matches = gameData.methods.filter(m => {
-    if (m.type !== 'CATCH' && m.type !== 'GIFT') return false;
-    return matchLocation(dbLocation, m.location);
+
+  // Split location_details by comma (depth-aware to skip parens)
+  const dbParts = [];
+  let depth = 0;
+  let current = '';
+  for (const ch of dbLocation) {
+    if (ch === '(') depth++;
+    if (ch === ')') depth--;
+    if (ch === ',' && depth === 0) {
+      dbParts.push(current.trim());
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  if (current.trim()) dbParts.push(current.trim());
+
+  const results = [];
+
+  dbParts.forEach(part => {
+    // Extract canonical location name (strip trailing `...` and parenthetical suffixes)
+    const canonicalLoc = part
+      .replace(/\s*\.\.\.\s*/g, '')
+      .replace(/\s*\([^)]*\)\s*$/, '')
+      .trim();
+
+    const matches = gameData.methods.filter(m => {
+      if (m.type !== 'CATCH' && m.type !== 'GIFT') return false;
+      return matchLocation(part, m.location);
+    });
+
+    matches.forEach(m => {
+      const methodStr = m.method.charAt(0).toUpperCase() + m.method.slice(1).replace(/-/g, ' ');
+      const cappedChance = Math.min(100, m.chance);
+      // Prefix with @CanonicalLocation: so UI can group by location
+      results.push(`@${canonicalLoc}:${methodStr} [Lvl ${m.level_range}, ${cappedChance}%]`);
+    });
   });
-  
-  if (matches.length === 0) return null;
-  
-  return matches.map(m => {
-    const methodStr = m.method.charAt(0).toUpperCase() + m.method.slice(1).replace('-', ' ');
-    const cappedChance = Math.min(100, m.chance);
-    return `${methodStr} [Lvl ${m.level_range}, ${cappedChance}%]`;
-  }).join(' | ');
+
+  if (results.length === 0) return null;
+  return results.join(' | ');
 }
 
 export function setDatabasePath(newPath) {
@@ -151,8 +193,6 @@ export async function initDb() {
   // Run PRAGMA foreign_keys to be sure it is active for this session
   await run("PRAGMA foreign_keys = ON");
   
-  // Clean up any orphaned progress rows first
-  await run("DELETE FROM progress WHERE requirement_id NOT IN (SELECT id FROM requirements)");
 
   // Create tables
   await run(`
@@ -229,6 +269,9 @@ export async function initDb() {
       FOREIGN KEY (pokemon_id) REFERENCES pokemon (id)
     )
   `);
+
+  // Clean up any orphaned progress rows first
+  await run("DELETE FROM progress WHERE requirement_id NOT IN (SELECT id FROM requirements)");
 
   // Ensure caught_pokemon is populated from any existing progress (non-destructive migration check)
   try {
@@ -315,25 +358,32 @@ async function seedMissingData() {
   await run("BEGIN TRANSACTION");
   let sectionGlobalId = 1;
   for (const game of gamesList) {
-    const names = game.region === 'Kanto' 
-      ? [
-          "Pre-Boulder Badge (Brock)", "Pre-Cascade Badge (Misty)", "Pre-Thunder Badge (Lt. Surge)",
-          "Pre-Rainbow Badge (Erika)", "Pre-Soul Badge (Koga)", "Pre-Marsh Badge (Sabrina)",
-          "Pre-Volcano Badge (Blaine)", "Pre-Earth Badge (Giovanni)", "Pre-Elite Four", "Post-Game"
-        ]
-      : game.region === 'Johto'
-      ? [
-          "Pre-Zephyr Badge (Falkner)", "Pre-Hive Badge (Bugsy)", "Pre-Plain Badge (Whitney)",
-          "Pre-Fog Badge (Morty)", "Pre-Storm Badge (Chuck)", "Pre-Mineral Badge (Jasmine)",
-          "Pre-Glacier Badge (Pryce)", "Pre-Rising Badge (Clair)", "Pre-Elite Four", "Post-Game"
-        ]
-      : [
-          "Pre-Stone Badge (Roxanne)", "Pre-Knuckle Badge (Brawly)", "Pre-Dynamo Badge (Wattson)",
-          "Pre-Heat Badge (Flannery)", "Pre-Balance Badge (Norman)", "Pre-Feather Badge (Winona)",
-          "Pre-Mind Badge (Tate & Liza)", "Pre-Rain Badge (Wallace)", "Pre-Elite Four", "Post-Game"
-        ];
+    let names = [];
+    if (game.region === 'Kanto' && (game.name.includes('Red') || game.name.includes('Blue') || game.name.includes('Yellow'))) {
+      names = [
+        "Pre-Badge 1 (Brock)", "Pre-Badge 2 (Misty)", "Pre-Badge 3 (Koga)",
+        "Pre-Badge 4 (Erika)", "Pre-Badges 5-8", "Pre-Elite Four", "Post-Game"
+      ];
+    } else if (game.region === 'Kanto' && (game.name.includes('FireRed') || game.name.includes('LeafGreen'))) {
+      names = [
+        "Pre-Badge 1 (Brock)", "Pre-Badge 2 (Misty)", "Pre-Badge 3 (Koga)",
+        "Pre-Badge 4 (Blaine)", "Pre-Badge 5 (Erika)", "Pre-Badges 6-8 and E4", "Post-Game"
+      ];
+    } else if (game.region === 'Johto') {
+      names = [
+        "Pre-Badge 1 (Falkner)", "Pre-Badge 2 (Bugsy)", "Pre-Badge 3 (Whitney)",
+        "Pre-Badge 4 (Morty)", "Pre-Badge 5 (Pryce)", "Pre-Badges 6-7 (Jasmine & Chuck)",
+        "Pre-Badge 8 (Clair)", "Pre-Elite Four", "Pre-Kanto Badges", "Post-Kanto Badges"
+      ];
+    } else if (game.region === 'Hoenn') {
+      names = [
+        "Pre-Badge 1 (Rustboro Gym)", "Pre-Badge 2 (Mauville Gym)", "Pre-Badge 3 (Lavaridge Gym)",
+        "Pre-Badges 4-5 (Dewford & Petalburg)", "Pre-Badge 6 (Mossdeep Gym)", "Pre-Badge 7 (Sootopolis Gym)",
+        "Pre-Badge 8 (Fortree Gym)", "Pre-Elite Four", "Post-Game"
+      ];
+    }
 
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < names.length; i++) {
       await run(`
         INSERT OR IGNORE INTO sections (id, game_id, name, description, order_index)
         VALUES (?, ?, ?, ?, ?)
@@ -368,7 +418,7 @@ async function seedMissingData() {
       for (const resolved of resolvedList) {
         const absoluteSecId = sectionIdMap[`${game.id}_${resolved.section_id}`];
         if (!absoluteSecId) {
-          throw new Error(`Failed to map section for ${game.id} section index ${resolved.section_id}`);
+          throw new Error(`Failed to map section for ${game.id} section index ${resolved.section_id} on Pokemon ID ${pid}`);
         }
         const key = `${game.id}|${pid}|${resolved.action_type}|${resolved.location_details}`;
         activeReqKeys.add(key);

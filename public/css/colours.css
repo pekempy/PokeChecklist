@@ -1,0 +1,50 @@
+/* Pokémon Type Colours */
+.type-normal   { background: #9CA3AF; }
+.type-fire     { background: #F97316; }
+.type-water    { background: #3B82F6; }
+.type-electric { background: #EAB308; color: #000; }
+.type-grass    { background: #22C55E; color: #000; }
+.type-ice      { background: #67E8F9; color: #000; }
+.type-fighting { background: #B91C1C; }
+.type-poison   { background: #A855F7; }
+.type-ground   { background: #D97706; }
+.type-flying   { background: #818CF8; }
+.type-psychic  { background: #EC4899; }
+.type-bug      { background: #84CC16; color: #000; }
+.type-rock     { background: #92400E; }
+.type-ghost    { background: #7C3AED; }
+.type-dragon   { background: #4F46E5; }
+.type-dark     { background: #44403C; }
+.type-steel    { background: #94A3B8; color: #000; }
+.type-fairy    { background: #F9A8D4; color: #000; }
+
+/* Game Ownership Badge Colours */
+.active-red      { background: #DC2626; color: #fff; border-color: #DC2626; }
+.active-blue     { background: #2563EB; color: #fff; border-color: #2563EB; }
+.active-yellow   { background: #CA8A04; color: #fff; border-color: #CA8A04; }
+.active-gold     { background: #D97706; color: #fff; border-color: #D97706; }
+.active-silver   { background: #94A3B8; color: #000; border-color: #94A3B8; }
+.active-crystal  { background: #38BDF8; color: #000; border-color: #38BDF8; }
+.active-ruby     { background: #E11D48; color: #fff; border-color: #E11D48; }
+.active-sapphire { background: #1D4ED8; color: #fff; border-color: #1D4ED8; }
+.active-emerald  { background: #059669; color: #fff; border-color: #059669; }
+.active-firered  { background: #EA580C; color: #fff; border-color: #EA580C; }
+.active-leafgreen{ background: #16A34A; color: #fff; border-color: #16A34A; }
+
+/* Game Tags (search results) */
+.tag-red      { background: rgba(220,38,38,0.15);   color: #f87171; }
+.tag-blue     { background: rgba(37,99,235,0.15);   color: #93c5fd; }
+.tag-yellow   { background: rgba(202,138,4,0.15);   color: #fde68a; }
+.tag-gold     { background: rgba(217,119,6,0.15);   color: #fbbf24; }
+.tag-silver   { background: rgba(148,163,184,0.15); color: #cbd5e1; }
+.tag-crystal  { background: rgba(56,189,248,0.15);  color: #7dd3fc; }
+.tag-ruby     { background: rgba(225,29,72,0.15);   color: #fb7185; }
+.tag-sapphire { background: rgba(29,78,216,0.15);   color: #93c5fd; }
+.tag-emerald  { background: rgba(5,150,105,0.15);   color: #6ee7b7; }
+.tag-firered  { background: rgba(234,88,12,0.15);   color: #fdba74; }
+.tag-leafgreen{ background: rgba(22,163,74,0.15);   color: #86efac; }
+
+:root {
+  --game-active-color: #38bdf8;
+  --game-active-color-glow: rgba(56, 189, 248, 0.2);
+}

@@ -1,216 +1,221 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>PokéChecklist - Catch &amp; Evolution Tracker</title>
-  <!-- Google Fonts -->
+  <title>Professor Oak Challenge — Complete Guide</title>
+  <meta name="description" content="The definitive Professor Oak Challenge tracker for Pokémon Gen 1–3. Catch everything before every gym.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-    rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=11">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/base.css?v=23">
+  <link rel="stylesheet" href="css/layout.css?v=23">
+  <link rel="stylesheet" href="css/components.css?v=23">
+  <link rel="stylesheet" href="css/colours.css?v=23">
   <link rel="manifest" href="/manifest.json?v=11" crossorigin="use-credentials">
-  <meta name="theme-color" content="#121216">
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="https://img.icons8.com/color/48/pokeball.png">
+  <meta name="theme-color" content="#0a0a0f">
+  <link rel="icon" type="image/png" href="icons/oak_logo.png">
 </head>
-
 <body>
 
-  <!-- Sticky Header with Progress Bar -->
-  <header class="app-header">
-    <div class="header-main">
+  <!-- SIDEBAR (desktop) / BOTTOM DRAWER (mobile) -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-inner">
+      <!-- Brand -->
       <div class="brand">
-        <img src="https://img.icons8.com/color/96/pokeball.png" alt="Pokéball Icon" class="brand-logo">
+        <img src="icons/oak_logo.png" alt="" class="brand-icon" aria-hidden="true">
         <div class="brand-text">
-          <h1><span class="logo-white">Poké</span><span class="logo-red">Checklist</span></h1>
-          <span class="brand-subtitle">Gen 1-3 Catch Companion</span>
+          <span class="brand-name"><span class="brand-oak">Oak</span><span class="brand-challenge">Challenge</span></span>
+          <span class="brand-sub">Completion Tracker · Gen 1–3</span>
         </div>
       </div>
-      <div class="game-select-container">
-        <button id="reset-game-btn" class="reset-game-btn">Reset Game</button>
-        <button id="set-default-game-btn" class="set-default-btn">Set Default Game</button>
-        <div class="select-wrapper">
-          <select id="game-select" class="custom-select">
-            <!-- Game options populated dynamically -->
+
+      <!-- Game Picker -->
+      <div class="game-picker">
+        <span class="picker-label">Active Game</span>
+        <div class="picker-row">
+          <div id="game-select-container" class="custom-dropdown">
+            <button id="dropdown-trigger" class="dropdown-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+              <div class="dropdown-trigger-bar" id="dropdown-trigger-bar"></div>
+              <span id="dropdown-selected-name">Select Game</span>
+              <span id="dropdown-selected-percentage" class="dropdown-selected-percentage">0%</span>
+              <span class="dropdown-caret">▼</span>
+            </button>
+            <div id="dropdown-menu" class="dropdown-menu hidden" role="listbox" aria-label="Game Select Menu">
+              <!-- Dynamically populated options -->
+            </div>
+          </div>
+          <button id="set-default-game-btn" class="icon-btn" title="Set as default game" aria-label="Set as default game">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+          </button>
+          <button id="reset-game-btn" class="icon-btn icon-btn--danger" title="Reset game progress" aria-label="Reset game progress">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4V1L8 5l4 4V6c3.3 0 6 2.7 6 6s-2.7 6-6 6-6-2.7-6-6H4c0 4.4 3.6 8 8 8s8-3.6 8-8-3.6-8-8-8z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Overall Progress -->
+      <div class="sidebar-progress">
+        <div class="progress-label">
+          <span id="progress-percentage" class="progress-pct">0%</span>
+          <span id="progress-ratio" class="progress-ratio">0 / 0 Caught</span>
+        </div>
+        <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+          <div id="progress-fill" class="progress-fill"></div>
+        </div>
+      </div>
+
+      <!-- Section Timeline -->
+      <div class="timeline-header">
+        <span class="timeline-label">POC Milestones</span>
+        <span class="timeline-hint">← scroll</span>
+      </div>
+      <nav class="section-nav" id="section-nav" aria-label="POC Milestone Navigation">
+        <!-- Populated by JS -->
+      </nav>
+    </div>
+  </aside>
+
+  <!-- Mobile sidebar toggle overlay -->
+  <div class="sidebar-overlay" id="sidebar-overlay" aria-hidden="true"></div>
+
+  <!-- MAIN CONTENT -->
+  <div class="app-shell">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <button class="menu-toggle" id="menu-toggle" aria-label="Open milestones" aria-expanded="false">
+        <span class="menu-toggle-icon">
+          <span></span><span></span><span></span>
+        </span>
+        <span class="menu-toggle-label">Milestones</span>
+      </button>
+
+      <div class="search-wrap">
+        <label for="global-search-input" class="sr-only">Search Pokémon</label>
+        <span class="search-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </span>
+        <input type="search" id="global-search-input" class="search-input" placeholder="Search any Pokémon across all 11 games…" autocomplete="off" spellcheck="false">
+        <button id="clear-search-btn" class="clear-btn hidden" aria-label="Clear search">&times;</button>
+      </div>
+    </header>
+
+    <!-- CONTENT AREA -->
+    <main class="content-area" id="content-area">
+
+      <!-- Active Section Hero -->
+      <div class="section-hero glass" id="active-section-details">
+        <div class="section-hero-left">
+          <p class="section-hero-eyebrow" id="section-eyebrow">Section 1</p>
+          <h1 class="section-hero-title" id="section-title">Loading…</h1>
+          <p class="section-hero-desc" id="section-desc">Please wait while the guide loads.</p>
+        </div>
+
+      </div>
+
+      <!-- Stub warning -->
+      <div id="stub-warning" class="stub-warning hidden" role="alert">
+        <span class="stub-icon">⚠️</span>
+        <div><strong>Under Construction</strong><p>Data for this game is not yet available.</p></div>
+      </div>
+
+      <!-- Location Sub-tabs -->
+      <div class="subtab-row hidden" id="sub-tabs-container" role="tablist" aria-label="Filter by location"></div>
+
+      <!-- Filters bar -->
+      <div class="filters-bar glass">
+        <div class="filters-left">
+          <button id="filter-hide-caught" class="filt-btn" aria-pressed="false">
+            <span aria-hidden="true">👁</span> Hide Caught
+          </button>
+          <button id="filter-show-evolutions" class="filt-btn filt-active" aria-pressed="true">
+            <span aria-hidden="true">🧬</span> Evolutions
+          </button>
+          <button id="filter-only-carryover" class="filt-btn" aria-pressed="false">
+            <span aria-hidden="true">↩</span> Only Carry-Over
+          </button>
+          <button id="filter-hide-carryover" class="filt-btn" aria-pressed="false">
+            <span aria-hidden="true">🚫</span> Hide Old
+          </button>
+        </div>
+        <div class="filters-right">
+          <label class="tool-checkbox" id="surf-filter-label">
+            <input type="checkbox" id="tool-surf"> <span>🏄 Surf</span>
+          </label>
+          <label class="tool-checkbox" id="headbutt-filter-label" style="display:none">
+            <input type="checkbox" id="tool-headbutt" checked> <span>🌳 Headbutt</span>
+          </label>
+          <select id="tool-rod" class="tool-select" aria-label="Fishing rod">
+            <option value="none">🎣 No Rod</option>
+            <option value="old">🎣 Old Rod</option>
+            <option value="good">🎣 Good Rod</option>
+            <option value="super">🎣 Super Rod</option>
           </select>
-        </div>
-      </div>
-    </div>
-
-    <!-- Global Search Bar -->
-    <div class="search-container">
-      <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="global-search-input" placeholder="Search all 386 Pokémon (by name, dex #, type)..."
-          autocomplete="off">
-        <button id="clear-search-btn" class="clear-search-btn hidden">&times;</button>
-      </div>
-    </div>
-
-    <!-- Pinned Progress Bar -->
-    <div class="progress-bar-container">
-      <div class="progress-stats">
-        <span id="progress-percentage">0%</span>
-        <span id="progress-ratio">0 / 0 Completed</span>
-      </div>
-      <div class="progress-track">
-        <div id="progress-fill" class="progress-fill"></div>
-      </div>
-    </div>
-  </header>
-
-  <!-- Mobile Section Navigation Bar -->
-  <nav class="section-nav" id="section-nav">
-    <!-- Horizontal scrolling section pills populated dynamically -->
-  </nav>
-
-  <!-- Main Content Container -->
-  <main class="app-content">
-
-    <!-- Active Section Header / Details -->
-    <div class="active-section-card" id="active-section-details">
-      <h2 id="section-title">Loading...</h2>
-      <p id="section-desc">Please wait while the game checklist loads.</p>
-    </div>
-
-    <!-- Sub-tabs Container (dynamic routes filter) -->
-    <div class="sub-tabs-bar hidden" id="sub-tabs-container"></div>
-
-    <!-- Stub Warning (for games under construction) -->
-    <div id="stub-warning" class="stub-warning hidden">
-      <div class="stub-icon">⚠️</div>
-      <div class="stub-text">
-        <h3>Region Under Construction</h3>
-        <p>This is a database stub for expansion. The full route checklist will be added in a future update.</p>
-      </div>
-    </div>
-
-    <!-- Filters Container -->
-    <div class="filters-container">
-      <div class="filter-group-left">
-        <button id="filter-hide-caught" class="filter-btn">
-          <span class="filter-btn-icon">👁️</span> Hide Caught
-        </button>
-        <button id="filter-show-evolutions" class="filter-btn active">
-          <span class="filter-btn-icon">🧬</span> Show Evolutions
-        </button>
-
-        <button id="filter-only-carryover" class="filter-btn">
-          <span class="filter-btn-icon">↩</span> Only Carry-Over
-        </button>
-        <button id="filter-hide-carryover" class="filter-btn">
-          <span class="filter-btn-icon">🚫</span> Hide Carry-Over
-        </button>
-      </div>
-
-      <div class="filter-group-right">
-        <label class="tool-filter-checkbox" id="surf-filter-label">
-          <input type="checkbox" id="tool-surf">
-          <span>HM03 Surf</span>
-        </label>
-
-        <label class="tool-filter-checkbox" id="headbutt-filter-label" style="display: none;">
-          <input type="checkbox" id="tool-headbutt" checked>
-          <span>🌳 Headbutt</span>
-        </label>
-
-        <div class="tool-filter-select-wrapper">
-          <select id="tool-rod" class="tool-filter-select">
-            <option value="none">No Fishing Rod</option>
-            <option value="old">Old Rod</option>
-            <option value="good">Good Rod</option>
-            <option value="super">Super Rod</option>
+          <select id="filter-trade-link" class="tool-select" aria-label="Trade evolutions">
+            <option value="all">🔄 All Evos</option>
+            <option value="hide">🚫 Hide Trade Evo</option>
+            <option value="only">🤝 Only Trade Evo</option>
           </select>
-        </div>
-
-        <div class="tool-filter-select-wrapper">
-          <select id="filter-trade-link" class="tool-filter-select">
-            <option value="all">All Evolutions</option>
-            <option value="hide">Hide Trade Evo</option>
-            <option value="only">Only Trade Evo</option>
-          </select>
-        </div>
-
-        <div class="tool-filter-select-wrapper" id="time-filter-wrapper" style="display: none;">
-          <select id="filter-time-of-day" class="tool-filter-select">
-            <option value="all">☀️🌙 All Times</option>
-            <option value="day">☀️ Day / Morning</option>
-            <option value="night">🌙 Night</option>
-          </select>
+          <div id="time-filter-wrapper" style="display:none">
+            <select id="filter-time-of-day" class="tool-select" aria-label="Time of day">
+              <option value="all">☀️🌙 All Times</option>
+              <option value="day">☀️ Day</option>
+              <option value="night">🌙 Night</option>
+            </select>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Checklist Items Grid -->
-    <section class="checklist-section" id="checklist-grid">
-      <!-- Items populated dynamically -->
-    </section>
+      <!-- Checklist grid -->
+      <section class="checklist-grid" id="checklist-grid" aria-label="Pokémon checklist"></section>
 
-  </main>
+    </main>
+  </div>
 
-  <!-- Mobile Footer / Stats Drawer (Slide Up Indicator) -->
-  <footer class="app-footer">
-    <div class="footer-content">
-      <p>&copy; 2026 PokéChecklist. Data sourced from Bulbapedia.</p>
-    </div>
-  </footer>
-
-  <!-- Trade Confirmation Modal -->
-  <div id="trade-modal" class="modal hidden">
-    <div class="modal-overlay"></div>
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Trade Pokémon</h3>
-        <button id="close-trade-modal" class="close-btn">&times;</button>
+  <!-- TRADE MODAL -->
+  <div id="trade-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="trade-modal-title">
+    <div class="modal-backdrop"></div>
+    <div class="modal-box glass">
+      <div class="modal-head">
+        <h2 id="trade-modal-title" class="modal-title">Trade Pokémon</h2>
+        <button id="close-trade-modal" class="close-btn" aria-label="Close">&times;</button>
       </div>
       <div class="modal-body">
-        <p class="trade-intro">Select a Pokémon currently owned in <strong id="trade-target-game-name"></strong> to
-          receive in exchange for your <strong id="trade-source-pokemon-name"></strong>:</p>
-        <div class="trash-trade-container" style="margin-bottom: 16px;">
-          <label class="tool-filter-checkbox" style="display: flex; align-items: center; gap: 10px; width: 100%; border-radius: 10px; padding: 10px 14px; background-color: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);">
-            <input type="checkbox" id="trade-trash-checkbox" style="margin: 0;">
-            <span style="font-size: 0.85rem; font-weight: 600; color: #ffffff;">Receive a Trash Pokémon (No return trade required)</span>
-          </label>
-        </div>
-        <div id="trade-options-container" class="trade-options-grid">
-          <!-- Populated dynamically -->
-        </div>
-        <div id="trade-empty-message" class="trade-empty-message hidden">
-          <p>⚠️ No Pokémon are currently owned in <span id="trade-target-game-name-empty"></span>.</p>
-          <p>You must catch at least one Pokémon in that game to trade back!</p>
+        <p class="trade-intro">Pick a Pokémon owned in <strong id="trade-target-game-name" class="accent-text"></strong> to give back for your <strong id="trade-source-pokemon-name" class="accent-text"></strong>:</p>
+        <label class="tool-checkbox trash-check">
+          <input type="checkbox" id="trade-trash-checkbox"> <span>Receive trash Pokémon (no return trade required)</span>
+        </label>
+        <div id="trade-options-container" class="trade-grid"></div>
+        <div id="trade-empty-message" class="trade-empty hidden">
+          <p>⚠️ No Pokémon owned in <span id="trade-target-game-name-empty"></span>.<br>Catch something there first!</p>
         </div>
       </div>
-      <div class="modal-footer">
-        <button id="cancel-trade-btn" class="btn btn-secondary">Cancel</button>
+      <div class="modal-foot">
+        <button id="cancel-trade-btn" class="btn btn-ghost">Cancel</button>
         <button id="confirm-trade-btn" class="btn btn-primary" disabled>Confirm Trade</button>
       </div>
     </div>
   </div>
 
-  <!-- Custom Confirmation Modal -->
-  <div id="confirm-modal" class="modal hidden">
-    <div class="modal-overlay" id="confirm-modal-overlay"></div>
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 id="confirm-modal-title">Reset Game Progress</h3>
-        <button id="close-confirm-modal-btn" class="close-btn">&times;</button>
+  <!-- CONFIRM MODAL -->
+  <div id="confirm-modal" class="modal hidden" role="alertdialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+    <div class="modal-backdrop" id="confirm-modal-overlay"></div>
+    <div class="modal-box glass">
+      <div class="modal-head">
+        <h2 id="confirm-modal-title" class="modal-title">Confirm</h2>
+        <button id="close-confirm-modal-btn" class="close-btn" aria-label="Close">&times;</button>
       </div>
-      <div class="modal-body" style="padding: 20px;">
-        <p id="confirm-modal-message"
-          style="margin: 0; line-height: 1.6; color: var(--text-secondary); font-size: 0.95rem;"></p>
+      <div class="modal-body">
+        <p id="confirm-modal-message" class="confirm-message"></p>
       </div>
-      <div class="modal-footer">
-        <button id="confirm-modal-cancel-btn" class="btn btn-secondary">Cancel</button>
+      <div class="modal-foot">
+        <button id="confirm-modal-cancel-btn" class="btn btn-ghost">Cancel</button>
         <button id="confirm-modal-ok-btn" class="btn btn-primary">Confirm</button>
       </div>
     </div>
   </div>
 
-  <script src="app.js?v=11" type="module"></script>
+  <script src="app.js?v=23" type="module"></script>
 </body>
-
 </html>
