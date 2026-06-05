@@ -530,7 +530,8 @@ export const gen2Gifts = {
     213: { loc: "Cianwood City (From Mania)", sec: 5 }, // Shuckle
     147: { loc: "Dragon's Den Shrine (Elder's Quiz)", sec: 8 }, // Dratini
     236: { loc: "Mt. Mortar B1F (From Kiyo)", sec: 8 }, // Tyrogue
-    133: { loc: "Goldenrod City (From Bill)", sec: 3 } // Eevee
+    133: { loc: "Goldenrod City (From Bill)", sec: 3 }, // Eevee
+    185: { loc: "Route 36 (Static - Squirtbottle)", sec: 4 } // Sudowoodo
   },
   silver: {
     152: { loc: "New Bark Town (Elm's Lab Choice)", sec: 1 }, // Chikorita
@@ -540,7 +541,8 @@ export const gen2Gifts = {
     213: { loc: "Cianwood City (From Mania)", sec: 5 }, // Shuckle
     147: { loc: "Dragon's Den Shrine (Elder's Quiz)", sec: 8 }, // Dratini
     236: { loc: "Mt. Mortar B1F (From Kiyo)", sec: 8 }, // Tyrogue
-    133: { loc: "Goldenrod City (From Bill)", sec: 3 } // Eevee
+    133: { loc: "Goldenrod City (From Bill)", sec: 3 }, // Eevee
+    185: { loc: "Route 36 (Static - Squirtbottle)", sec: 4 } // Sudowoodo
   },
   crystal: {
     152: { loc: "New Bark Town (Elm's Lab Choice)", sec: 1 }, // Chikorita
@@ -551,7 +553,8 @@ export const gen2Gifts = {
     147: { loc: "Dragon's Den Shrine (ExtremeSpeed Dratini)", sec: 8 }, // Dratini
     236: { loc: "Mt. Mortar B1F (From Kiyo)", sec: 8 }, // Tyrogue
     133: { loc: "Goldenrod City (From Bill)", sec: 3 }, // Eevee
-    172: { loc: "Goldenrod Daycare (Odd Egg Gift)", sec: 3 } // Pichu
+    172: { loc: "Goldenrod Daycare (Odd Egg Gift)", sec: 3 }, // Pichu
+    185: { loc: "Route 36 (Static - Squirtbottle)", sec: 4 } // Sudowoodo
   }
 };
 
@@ -1584,6 +1587,15 @@ function getDescendantIds(pId) {
 }
 
 /**
+ * Manual minimum section overrides for evolutions that require late-game items.
+ * Without this, they inherit their base form's section (e.g. Pre-Badge 1).
+ */
+const evoSectionOverrides = {
+  62: 7, // Poliwrath (Water Stone)
+  186: 7 // Politoed (King's Rock)
+};
+
+/**
  * Returns ALL valid acquisition methods for a Pokémon in a given game.
  * Each entry: { action_type, location_details, notes, section_id }
  *
@@ -1652,7 +1664,12 @@ export function resolveRequirements(gameId, pokemonId, pokemonMap, visited = new
         const nativePreReqs = preReqs.filter(r => r.action_type !== 'TRADE' || r.location_details !== 'Link Trade');
         if (nativePreReqs.length > 0) {
           // Use earliest section of native pre-evolution as the section for the evo entry
-          const preSecId = Math.min(...nativePreReqs.map(r => r.section_id));
+          let preSecId = Math.min(...nativePreReqs.map(r => r.section_id));
+          
+          if (evoSectionOverrides[pokemonId]) {
+            preSecId = Math.max(preSecId, evoSectionOverrides[pokemonId]);
+          }
+          
           const preName = pokemonMap[evo.from].name;
           push({
             action_type: 'EVOLVE',

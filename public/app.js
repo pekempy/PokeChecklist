@@ -1557,9 +1557,6 @@ function renderChecklistCards() {
   // 1. Current section items
   const currentSectionItems = state.checklistItems.filter(item => item.section_id === state.selectedSectionId);
 
-  // Render sub-tabs for route-based filtering
-  renderSubTabs(currentSectionItems);
-
   // 2. Direct carry over items (uncompleted pokemon from previous sections)
   const finalCarryOvers = state.checklistItems.filter(item => {
     const itemSection = state.sections.find(s => s.id === item.section_id);
@@ -1632,6 +1629,9 @@ function renderChecklistCards() {
       requirements: validReqs
     };
   }).filter(item => item.requirements.length > 0);
+
+  // Render sub-tabs for route-based filtering based on visible items
+  renderSubTabs(filteredItems);
 
   // Apply Sub-Tab Route Filter
   if (state.selectedSubTab !== 'All') {
@@ -1722,9 +1722,17 @@ function renderChecklistCards() {
         const encounters = parseEncounterNotes(req.location_details, req.notes, state.selectedGameId);
         const groups = groupEncounters(encounters);
         
+        const hideAllCaught = req.completed; // Collapse all if caught
+        
         const groupsHtml = groups.map((group, groupIdx) => {
           const isTabMatch = state.selectedSubTab !== 'All' && group.location.toLowerCase().includes(state.selectedSubTab.toLowerCase());
-          const isHiddenClass = (groupIdx >= 5 && !isTabMatch) ? 'hidden-encounter-group hidden' : '';
+          
+          let isHiddenClass = '';
+          if (hideAllCaught) {
+            isHiddenClass = 'hidden-encounter-group hidden';
+          } else {
+            isHiddenClass = (groupIdx >= 5 && !isTabMatch) ? 'hidden-encounter-group hidden' : '';
+          }
           const highlightClass = '';
           
           const methodsHtml = group.methods.map(m => {
@@ -1753,15 +1761,17 @@ function renderChecklistCards() {
         }).join('');
 
         const hiddenCount = groups.filter((g, idx) => {
+          if (hideAllCaught) return true;
           const isTabMatch = state.selectedSubTab !== 'All' && g.location.toLowerCase().includes(state.selectedSubTab.toLowerCase());
           return idx >= 5 && !isTabMatch;
         }).length;
         
         let expandBtnHtml = '';
         if (hiddenCount > 0) {
+          const text = hideAllCaught ? `Caught - Show ${hiddenCount} locations...` : `Show ${hiddenCount} more locations...`;
           expandBtnHtml = `
             <button class="expand-encounters-btn collapsed" onclick="event.stopPropagation();">
-              Show ${hiddenCount} more locations...
+              ${text}
             </button>
           `;
         }
@@ -2502,17 +2512,23 @@ function renderSearchResults() {
           });
         }
       });
-
       const rowsHtml = processedReqs.map(req => {
         const actionIconHtml = getActionIconHtml(req.action_type, req.location_details, req.notes);
 
         if ((req.action_type === 'CATCH' || req.action_type === 'GIFT' || req.action_type === 'CATCH_EVOLVE') && req.notes) {
           const encounters = parseEncounterNotes(req.location_details, req.notes, req.game_id);
           const groups = groupEncounters(encounters);
-          
+          const hideAllCaught = req.completed; // Collapse all if caught
+            
           const groupsHtml = groups.map((group, groupIdx) => {
             const isTabMatch = req.game_id === state.selectedGameId && state.selectedSubTab !== 'All' && group.location.toLowerCase().includes(state.selectedSubTab.toLowerCase());
-            const isHiddenClass = (groupIdx >= 5 && !isTabMatch) ? 'hidden-encounter-group hidden' : '';
+            
+            let isHiddenClass = '';
+            if (hideAllCaught) {
+              isHiddenClass = 'hidden-encounter-group hidden';
+            } else {
+              isHiddenClass = (groupIdx >= 5 && !isTabMatch) ? 'hidden-encounter-group hidden' : '';
+            }
             const highlightClass = '';
             
             const methodsHtml = group.methods.map(m => {
@@ -2541,15 +2557,17 @@ function renderSearchResults() {
           }).join('');
 
           const hiddenCount = groups.filter((g, idx) => {
+            if (hideAllCaught) return true;
             const isTabMatch = req.game_id === state.selectedGameId && state.selectedSubTab !== 'All' && g.location.toLowerCase().includes(state.selectedSubTab.toLowerCase());
             return idx >= 5 && !isTabMatch;
           }).length;
           
           let expandBtnHtml = '';
           if (hiddenCount > 0) {
+            const text = hideAllCaught ? `Caught - Show ${hiddenCount} locations...` : `Show ${hiddenCount} more locations...`;
             expandBtnHtml = `
               <button class="expand-encounters-btn collapsed" onclick="event.stopPropagation();">
-                Show ${hiddenCount} more locations...
+                ${text}
               </button>
             `;
           }
